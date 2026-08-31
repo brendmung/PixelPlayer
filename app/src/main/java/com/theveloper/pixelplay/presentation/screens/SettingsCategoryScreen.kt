@@ -934,6 +934,27 @@ fun SettingsCategoryScreen(
                                         )
                                     }
                                 )
+                                if (uiState.shakeToSkipEnabled) {
+                                    // Resolved up front: valueText is a plain lambda and
+                                    // cannot call stringResource itself.
+                                    val sensitivityLabels = listOf(
+                                        stringResource(R.string.settings_shake_sensitivity_lowest),
+                                        stringResource(R.string.settings_shake_sensitivity_low),
+                                        stringResource(R.string.settings_shake_sensitivity_medium),
+                                        stringResource(R.string.settings_shake_sensitivity_high),
+                                        stringResource(R.string.settings_shake_sensitivity_highest)
+                                    )
+                                    SliderSettingsItem(
+                                        label = stringResource(R.string.settings_shake_sensitivity_title),
+                                        value = uiState.shakeSensitivity.toFloat(),
+                                        valueRange = 1f..5f,
+                                        steps = 3,
+                                        onValueChange = { settingsViewModel.setShakeSensitivity(it.toInt()) },
+                                        valueText = { value ->
+                                            sensitivityLabels[value.toInt().coerceIn(1, 5) - 1]
+                                        }
+                                    )
+                                }
                             }
                         }
                         SettingsCategory.AI_INTEGRATION -> {

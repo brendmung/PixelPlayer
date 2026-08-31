@@ -93,6 +93,7 @@ data class SettingsUiState(
     val tapBackgroundClosesPlayer: Boolean = false,
     val hapticsEnabled: Boolean = true,
     val shakeToSkipEnabled: Boolean = false,
+    val shakeSensitivity: Int = 3,
     val immersiveLyricsEnabled: Boolean = false,
     val immersiveLyricsTimeout: Long = 4000L,
     val useAnimatedLyrics: Boolean = false,
@@ -728,6 +729,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.shakeToSkipEnabledFlow.collect { enabled ->
                 _uiState.update { it.copy(shakeToSkipEnabled = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.shakeSensitivityFlow.collect { level ->
+                _uiState.update { it.copy(shakeSensitivity = level) }
             }
         }
 
@@ -1380,6 +1387,12 @@ class SettingsViewModel @Inject constructor(
     fun setShakeToSkipEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setShakeToSkipEnabled(enabled)
+        }
+    }
+
+    fun setShakeSensitivity(level: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setShakeSensitivity(level)
         }
     }
 

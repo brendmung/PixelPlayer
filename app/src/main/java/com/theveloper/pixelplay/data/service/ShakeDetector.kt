@@ -13,6 +13,8 @@ import timber.log.Timber
 /**
  * Detects a deliberate device shake from the accelerometer and reports it via [onShake].
  *
+ * The force each jolt must exceed is set by [setSensitivityLevel].
+ *
  * A shake is only reported once [REQUIRED_JOLTS] separate jolts land inside
  * [JOLT_WINDOW_MS] of each other, which keeps ordinary pocket movement and single
  * bumps from triggering it. After firing, further detection is muted for
@@ -32,6 +34,10 @@ class ShakeDetector(
 
     // Sensor callbacks are delivered on the main thread so [onShake] can touch the player directly.
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    // Written from the main thread, read on the sensor callback, hence @Volatile.
+    @Volatile
+    private var thresholdG = sensitivityToThreshold(DEFAULT_SENSITIVITY_LEVEL)
 
     private var isListening = false
     private var joltCount = 0
@@ -64,6 +70,17 @@ class ShakeDetector(
         Timber.tag(TAG).d("Shake detection stopped")
     }
 
+    /**
+     * Sets how hard the device must be shaken, where [level] runs from
+     * [MIN_SENSITIVITY_LEVEL] (needs a firm shake) to [MAX_SENSITIVITY_LEVEL]
+     * (triggers easily). Out-of-range values are clamped.
+     */
+    fun setSensitivityLevel(level: Int) {
+        thresholdG = sensitivityToThreshold(level)
+        // Drop any half-counted shake so the new threshold applies cleanly.
+        resetJolts()
+    }
+
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
@@ -72,7 +89,7 @@ class ShakeDetector(
         val z = event.values[2]
         // Magnitude of the acceleration vector expressed in g, with gravity removed.
         val gForce = sqrt(x * x + y * y + z * z) / SensorManager.GRAVITY_EARTH
-        if (gForce < SHAKE_THRESHOLD_G) return
+        if (gForce < thresholdG) return
 
         val now = System.currentTimeMillis()
         if (now - lastShakeAt < COOLDOWN_MS) return
@@ -99,10 +116,21 @@ class ShakeDetector(
         firstJoltAt = 0L
     }
 
-    private companion object {
+    companion object {
         const val TAG = "ShakeDetector"
-        /** Acceleration, in g, that a single jolt must exceed. */
-        const val SHAKE_THRESHOLD_G = 2.3f
+        const val MIN_SENSITIVITY_LEVEL = 1
+        const val MAX_SENSITIVITY_LEVEL = 5
+        const val DEFAULT_SENSITIVITY_LEVEL = 3
+
+        /**
+         * Maps a sensitivity level to the acceleration, in g, a jolt must exceed.
+         * Higher sensitivity means a lower threshold: level 1 needs 3.2g, the
+         * default level 3 needs 2.3g, and level 5 needs 1.4g.
+         */
+        fun sensitivityToThreshold(level: Int): Float {
+            val clamped = level.coerceIn(MIN_SENSITIVITY_LEVEL, MAX_SENSITIVITY_LEVEL)
+            return 3.65f - (0.45f * clamped)
+        }
         /** Number of jolts required before a shake is reported. */
         const val REQUIRED_JOLTS = 3
         /** Jolts must all land within this window to count as one shake. */

@@ -1,5 +1,6 @@
 package com.theveloper.pixelplay.data.preferences
 
+import com.theveloper.pixelplay.data.service.ShakeDetector
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.MutablePreferences
@@ -214,6 +215,7 @@ class UserPreferencesRepository @Inject constructor(
         val TAP_BACKGROUND_CLOSES_PLAYER = booleanPreferencesKey("tap_background_closes_player")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val SHAKE_TO_SKIP_ENABLED = booleanPreferencesKey("shake_to_skip_enabled")
+        val SHAKE_SENSITIVITY = intPreferencesKey("shake_sensitivity")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
             booleanPreferencesKey("advanced_performance_diagnostics_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT =
@@ -1251,6 +1253,19 @@ suspend fun markDirectoryRulesVersionApplied(version: Int) {
 
     suspend fun setShakeToSkipEnabled(enabled: Boolean) {
         dataStore.edit { it[PreferencesKeys.SHAKE_TO_SKIP_ENABLED] = enabled }
+    }
+
+    /** How hard the device must be shaken, 1 (firm shake) to 5 (triggers easily). */
+    val shakeSensitivityFlow: Flow<Int> =
+        pref { it[PreferencesKeys.SHAKE_SENSITIVITY] ?: ShakeDetector.DEFAULT_SENSITIVITY_LEVEL }
+
+    suspend fun setShakeSensitivity(level: Int) {
+        dataStore.edit {
+            it[PreferencesKeys.SHAKE_SENSITIVITY] = level.coerceIn(
+                ShakeDetector.MIN_SENSITIVITY_LEVEL,
+                ShakeDetector.MAX_SENSITIVITY_LEVEL
+            )
+        }
     }
 
     // ─── Backup / restore ─────────────────────────────────────────────────────

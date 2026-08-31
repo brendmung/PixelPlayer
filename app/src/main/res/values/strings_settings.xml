@@ -305,6 +305,12 @@
     <string name="settings_accessibility_gestures_section">Motion gestures</string>
     <string name="settings_shake_to_skip_title">Shake to skip</string>
     <string name="settings_shake_to_skip_subtitle">Shake your device while music is playing to jump to the next song</string>
+    <string name="settings_shake_sensitivity_title">Shake sensitivity</string>
+    <string name="settings_shake_sensitivity_lowest">Lowest</string>
+    <string name="settings_shake_sensitivity_low">Low</string>
+    <string name="settings_shake_sensitivity_medium">Medium</string>
+    <string name="settings_shake_sensitivity_high">High</string>
+    <string name="settings_shake_sensitivity_highest">Highest</string>
     <string name="settings_haptic_feedback_title">Haptic feedback</string>
     <string name="settings_haptic_feedback_subtitle">Enable vibration feedback across the app.</string>
 

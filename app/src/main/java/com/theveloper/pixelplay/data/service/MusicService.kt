@@ -535,6 +535,12 @@ class MusicService : MediaLibraryService() {
         }
 
         serviceScope.launch {
+            userPreferencesRepository.shakeSensitivityFlow.collect { level ->
+                shakeDetector.setSensitivityLevel(level)
+            }
+        }
+
+        serviceScope.launch {
             userPreferencesRepository.persistentShuffleEnabledFlow.collect { enabled ->
                 persistentShuffleEnabled = enabled
             }
