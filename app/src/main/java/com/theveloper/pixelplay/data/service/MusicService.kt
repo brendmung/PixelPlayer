@@ -234,6 +234,11 @@ class MusicService : MediaLibraryService() {
     private var shouldResumeAfterHeadsetReconnect = false
     private var lastNoisyPauseRealtimeMs = 0L
     private var resumeOnHeadsetReconnectEnabled = false
+    // --- Shake to skip ---
+    private var shakeToSkipEnabled = false
+    private val shakeDetector by lazy {
+        ShakeDetector(context = this, onShake = ::onShakeToSkip)
+    }
     private var pauseOnVolumeZeroEnabled = false
     private var temporaryForegroundStartedInOnCreate = false
 
@@ -519,6 +524,13 @@ class MusicService : MediaLibraryService() {
         serviceScope.launch {
             userPreferencesRepository.pauseOnVolumeZeroFlow.collect { enabled ->
                 pauseOnVolumeZeroEnabled = enabled
+            }
+        }
+
+        serviceScope.launch {
+            userPreferencesRepository.shakeToSkipEnabledFlow.collect { enabled ->
+                shakeToSkipEnabled = enabled
+                syncShakeDetection()
             }
         }
 
@@ -1266,6 +1278,8 @@ class MusicService : MediaLibraryService() {
             // is producing — keeps thermal headroom and battery for playback.
             PlaybackActivityTracker.setPlaybackActive(isPlaying)
             syncLocalListeningStatsFromPlayer(player)
+            // Only hold the accelerometer while audio is actually playing.
+            syncShakeDetection()
 
             if (isPlaying) {
                 reportNavidromePlayback("playing")
@@ -1490,8 +1504,39 @@ class MusicService : MediaLibraryService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
+    /**
+     * Registers or unregisters the accelerometer so it is only held while the
+     * feature is enabled *and* something is playing.
+     */
+    private fun syncShakeDetection() {
+        val player = mediaSession?.player ?: engine.masterPlayer
+        if (shakeToSkipEnabled && player.isPlaying) {
+            shakeDetector.start()
+        } else {
+            shakeDetector.stop()
+        }
+    }
+
+    /** Skips to the next track in response to a detected shake. */
+    private fun onShakeToSkip() {
+        val player = mediaSession?.player ?: engine.masterPlayer
+        if (!player.isPlaying) {
+            // Playback stopped between the shake and its delivery.
+            syncShakeDetection()
+            return
+        }
+        if (!player.hasNextMediaItem() && player.repeatMode == Player.REPEAT_MODE_OFF) {
+            Timber.tag(TAG).d("Shake to skip ignored: no next track")
+            return
+        }
+        Timber.tag(TAG).d("Shake to skip: advancing to next track")
+        player.seekToNext()
+        widgetUpdateManager.requestFullUpdate(true)
+    }
+
     override fun onDestroy() {
         PlaybackActivityTracker.setPlaybackActive(false)
+        shakeDetector.stop()
         listeningStatsTracker.finalizeCurrentSession(forceSynchronousPersistence = true)
         reportNavidromePlayback("stopped")
         stopNavidromePlaybackReporting()

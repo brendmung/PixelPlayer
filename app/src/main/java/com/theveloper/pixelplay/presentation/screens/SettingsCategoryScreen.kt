@@ -86,6 +86,7 @@ import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
@@ -912,6 +913,26 @@ fun SettingsCategoryScreen(
                                     checked = uiState.hapticsEnabled,
                                     onCheckedChange = { settingsViewModel.setHapticsEnabled(it) },
                                     leadingIcon = { Icon(painterResource(R.drawable.rounded_touch_app_24), null, tint = MaterialTheme.colorScheme.secondary) }
+                                )
+                            }
+                        }
+                        SettingsCategory.ACCESSIBILITY -> {
+                            SettingsSubsection(
+                                title = stringResource(R.string.settings_accessibility_gestures_section),
+                                addBottomSpace = false
+                            ) {
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.settings_shake_to_skip_title),
+                                    subtitle = stringResource(R.string.settings_shake_to_skip_subtitle),
+                                    checked = uiState.shakeToSkipEnabled,
+                                    onCheckedChange = { settingsViewModel.setShakeToSkipEnabled(it) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Vibration,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
                                 )
                             }
                         }

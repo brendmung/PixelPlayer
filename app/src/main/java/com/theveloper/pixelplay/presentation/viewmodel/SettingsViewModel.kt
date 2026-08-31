@@ -92,6 +92,7 @@ data class SettingsUiState(
     val albumArtCacheLimitMb: Int = 200,
     val tapBackgroundClosesPlayer: Boolean = false,
     val hapticsEnabled: Boolean = true,
+    val shakeToSkipEnabled: Boolean = false,
     val immersiveLyricsEnabled: Boolean = false,
     val immersiveLyricsTimeout: Long = 4000L,
     val useAnimatedLyrics: Boolean = false,
@@ -721,6 +722,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.fullPlayerLoadingTweaksFlow.collect { tweaks ->
                 _uiState.update { it.copy(fullPlayerLoadingTweaks = tweaks) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.shakeToSkipEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(shakeToSkipEnabled = enabled) }
             }
         }
 
@@ -1367,6 +1374,12 @@ class SettingsViewModel @Inject constructor(
     fun setHapticsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setHapticsEnabled(enabled)
+        }
+    }
+
+    fun setShakeToSkipEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setShakeToSkipEnabled(enabled)
         }
     }
 

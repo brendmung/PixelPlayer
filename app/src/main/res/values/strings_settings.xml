@@ -9,6 +9,8 @@
     <string name="settings_category_playback_subtitle">Audio behavior, crossfade, and background play</string>
     <string name="settings_category_behavior_title">Behavior</string>
     <string name="settings_category_behavior_subtitle">Gestures, haptics, and navigation behavior</string>
+    <string name="settings_category_accessibility_title">Accessibility</string>
+    <string name="settings_category_accessibility_subtitle">Motion gestures and assistive options</string>
     <string name="settings_category_ai_title">AI Integration (β)</string>
     <string name="settings_category_ai_subtitle">AI providers, API keys, and model settings</string>
     <string name="settings_category_backup_title">Backup &amp; Restore</string>
@@ -300,6 +302,9 @@
     <string name="settings_tap_bg_closes_title">Tap background closes player</string>
     <string name="settings_tap_bg_closes_subtitle">Tap the blurred background to close the player sheet.</string>
     <string name="settings_haptics_section">Haptics</string>
+    <string name="settings_accessibility_gestures_section">Motion gestures</string>
+    <string name="settings_shake_to_skip_title">Shake to skip</string>
+    <string name="settings_shake_to_skip_subtitle">Shake your device while music is playing to jump to the next song</string>
     <string name="settings_haptic_feedback_title">Haptic feedback</string>
     <string name="settings_haptic_feedback_subtitle">Enable vibration feedback across the app.</string>
 

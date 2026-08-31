@@ -213,6 +213,7 @@ class UserPreferencesRepository @Inject constructor(
         val ALBUM_ART_CACHE_LIMIT_MB = intPreferencesKey("album_art_cache_limit_mb")
         val TAP_BACKGROUND_CLOSES_PLAYER = booleanPreferencesKey("tap_background_closes_player")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+        val SHAKE_TO_SKIP_ENABLED = booleanPreferencesKey("shake_to_skip_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
             booleanPreferencesKey("advanced_performance_diagnostics_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT =
@@ -1242,6 +1243,14 @@ suspend fun markDirectoryRulesVersionApplied(version: Int) {
 
     suspend fun setHapticsEnabled(enabled: Boolean) {
         dataStore.edit { it[PreferencesKeys.HAPTICS_ENABLED] = enabled }
+    }
+
+    /** Whether shaking the device skips to the next song. Off by default to avoid accidental skips. */
+    val shakeToSkipEnabledFlow: Flow<Boolean> =
+        pref { it[PreferencesKeys.SHAKE_TO_SKIP_ENABLED] ?: false }
+
+    suspend fun setShakeToSkipEnabled(enabled: Boolean) {
+        dataStore.edit { it[PreferencesKeys.SHAKE_TO_SKIP_ENABLED] = enabled }
     }
 
     // ─── Backup / restore ─────────────────────────────────────────────────────

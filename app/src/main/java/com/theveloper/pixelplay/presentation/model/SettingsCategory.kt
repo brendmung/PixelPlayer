@@ -2,6 +2,7 @@ package com.theveloper.pixelplay.presentation.model
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Accessibility
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DeveloperMode
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -42,6 +43,12 @@ enum class SettingsCategory(
         titleRes = R.string.settings_category_behavior_title,
         subtitleRes = R.string.settings_category_behavior_subtitle,
         iconRes = R.drawable.rounded_touch_app_24
+    ),
+    ACCESSIBILITY(
+        id = "accessibility",
+        titleRes = R.string.settings_category_accessibility_title,
+        subtitleRes = R.string.settings_category_accessibility_subtitle,
+        icon = Icons.Rounded.Accessibility
     ),
     AI_INTEGRATION(
         id = "ai",
