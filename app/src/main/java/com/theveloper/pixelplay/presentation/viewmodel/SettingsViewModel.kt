@@ -12,6 +12,7 @@ import com.theveloper.pixelplay.data.backup.model.BackupHistoryEntry
 import com.theveloper.pixelplay.data.backup.model.RestorePlan
 import com.theveloper.pixelplay.data.backup.model.RestoreResult
 import com.theveloper.pixelplay.data.backup.model.ValidationError
+import com.theveloper.pixelplay.data.preferences.AppColorSource
 import com.theveloper.pixelplay.data.preferences.AppThemeMode
 import com.theveloper.pixelplay.data.preferences.CarouselStyle
 import com.theveloper.pixelplay.data.preferences.LibraryNavigationMode
@@ -56,6 +57,7 @@ data class SettingsUiState(
     val isLoadingDirectories: Boolean = false,
     val appLanguageTag: String = AppLanguage.SYSTEM.tag,
     val appThemeMode: String = AppThemeMode.FOLLOW_SYSTEM,
+    val appColorSource: String = AppColorSource.SYSTEM,
     val playerThemePreference: String = ThemePreference.ALBUM_ART,
     val albumArtPaletteStyle: AlbumArtPaletteStyle = AlbumArtPaletteStyle.default,
     val albumArtColorAccuracy: Int = AlbumArtColorAccuracy.DEFAULT,
@@ -589,6 +591,12 @@ class SettingsViewModel @Inject constructor(
             )
         }
 
+        viewModelScope.launch {
+            themePreferencesRepository.appColorSourceFlow.collect { source ->
+                _uiState.update { it.copy(appColorSource = source) }
+            }
+        }
+
         // Consolidated collectors using combine() to reduce coroutine overhead
         // Instead of 20 separate coroutines, we use 2 combined flows
         
@@ -915,6 +923,12 @@ class SettingsViewModel @Inject constructor(
     fun setCollageAutoRotate(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setCollageAutoRotate(enabled)
+        }
+    }
+
+    fun setAppColorSource(source: String) {
+        viewModelScope.launch {
+            themePreferencesRepository.setAppColorSource(source)
         }
     }
 

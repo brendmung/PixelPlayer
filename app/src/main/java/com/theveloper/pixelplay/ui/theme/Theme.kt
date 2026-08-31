@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
@@ -24,6 +25,9 @@ import com.theveloper.pixelplay.presentation.viewmodel.ColorSchemePair
 import androidx.core.graphics.ColorUtils
 
 val LocalPixelPlayDarkTheme = staticCompositionLocalOf { false }
+
+/** True while the app is themed from album art and the ambient artwork backdrop is drawn. */
+val LocalAmbientAlbumArt = staticCompositionLocalOf { false }
 val LocalShowScrollbar = staticCompositionLocalOf { true }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
@@ -106,10 +110,40 @@ val LightColorScheme = lightColorScheme(
     onError = PixelPlayWhite
 )
 
+/**
+ * Opens up the opaque container roles so the ambient artwork backdrop reads through them.
+ * Text and icon roles stay fully opaque so contrast is unaffected; only the fills that would
+ * otherwise hide the backdrop are softened, which is what gives dark filled buttons their glow.
+ */
+private fun ColorScheme.toAmbientColorScheme(): ColorScheme = copy(
+    // Only `background` fully opens up: it is the app root fill, so clearing it is what lets
+    // the backdrop through. `surface` stays opaque because dialogs and bottom sheets rely on
+    // it to stay readable over arbitrary content.
+    background = Color.Transparent,
+    surfaceContainerLowest = surfaceContainerLowest.copy(alpha = AmbientSurfaceAlpha),
+    surfaceContainerLow = surfaceContainerLow.copy(alpha = AmbientSurfaceAlpha),
+    surfaceContainer = surfaceContainer.copy(alpha = AmbientSurfaceAlpha),
+    surfaceContainerHigh = surfaceContainerHigh.copy(alpha = AmbientRaisedSurfaceAlpha),
+    surfaceContainerHighest = surfaceContainerHighest.copy(alpha = AmbientRaisedSurfaceAlpha),
+    surfaceVariant = surfaceVariant.copy(alpha = AmbientRaisedSurfaceAlpha),
+    primary = primary.copy(alpha = AmbientFilledAlpha),
+    secondary = secondary.copy(alpha = AmbientFilledAlpha),
+    tertiary = tertiary.copy(alpha = AmbientFilledAlpha),
+    primaryContainer = primaryContainer.copy(alpha = AmbientContainerAlpha),
+    secondaryContainer = secondaryContainer.copy(alpha = AmbientContainerAlpha),
+    tertiaryContainer = tertiaryContainer.copy(alpha = AmbientContainerAlpha)
+)
+
+private const val AmbientSurfaceAlpha = 0.66f
+private const val AmbientRaisedSurfaceAlpha = 0.74f
+private const val AmbientContainerAlpha = 0.70f
+private const val AmbientFilledAlpha = 0.82f
+
 @Composable
 fun PixelPlayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colorSchemePairOverride: ColorSchemePair? = null,
+    ambientAlbumArt: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -132,14 +166,25 @@ fun PixelPlayTheme(
         else -> LightColorScheme
     }
 
+    // Status/navigation bar icon contrast is decided from the opaque scheme; the ambient
+    // variant's transparent background carries no usable luminance.
     PixelPlayStatusBarStyle(
         color = finalColorScheme.background,
         navigationColor = finalColorScheme.background
     )
 
-    CompositionLocalProvider(LocalPixelPlayDarkTheme provides darkTheme) {
+    val appliedColorScheme = if (ambientAlbumArt) {
+        finalColorScheme.toAmbientColorScheme()
+    } else {
+        finalColorScheme
+    }
+
+    CompositionLocalProvider(
+        LocalPixelPlayDarkTheme provides darkTheme,
+        LocalAmbientAlbumArt provides ambientAlbumArt
+    ) {
         MaterialTheme(
-            colorScheme = finalColorScheme,
+            colorScheme = appliedColorScheme,
             typography = Typography,
             shapes = Shapes,
             content = content

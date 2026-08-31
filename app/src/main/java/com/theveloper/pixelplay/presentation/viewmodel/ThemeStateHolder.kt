@@ -97,7 +97,9 @@ class ThemeStateHolder @Inject constructor(
         Trace.beginSection("ThemeStateHolder.extractAndGenerateColorScheme")
         try {
             if (albumArtUriAsUri == null) {
-                if (!isPreload && currentSongUriString == null) {
+                // A track with no artwork must never inherit the previous track's palette:
+                // clear the scheme so consumers fall back to their own neutral defaults.
+                if (!isPreload) {
                     _currentAlbumArtColorSchemePair.value = null
                     _currentAlbumArtUri.value = null
                 }

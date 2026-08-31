@@ -732,6 +732,7 @@ private fun albumArtPaletteStyleDescription(style: AlbumArtPaletteStyle): String
             AlbumArtPaletteStyle.VIBRANT -> R.string.settings_palette_style_vibrant_desc
             AlbumArtPaletteStyle.EXPRESSIVE -> R.string.settings_palette_style_expressive_desc
             AlbumArtPaletteStyle.FRUIT_SALAD -> R.string.settings_palette_style_fruit_salad_desc
+            AlbumArtPaletteStyle.EGNUS -> R.string.settings_palette_style_egnus_desc
         }
     )
 
@@ -743,6 +744,7 @@ private fun albumArtPaletteStyleLabel(style: AlbumArtPaletteStyle): String =
             AlbumArtPaletteStyle.VIBRANT -> R.string.settings_palette_style_vibrant
             AlbumArtPaletteStyle.EXPRESSIVE -> R.string.settings_palette_style_expressive
             AlbumArtPaletteStyle.FRUIT_SALAD -> R.string.settings_palette_style_fruit_salad
+            AlbumArtPaletteStyle.EGNUS -> R.string.settings_palette_style_egnus
         }
     )
 

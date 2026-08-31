@@ -19,6 +19,7 @@ class ThemePreferencesRepository @Inject constructor(
         val ALBUM_ART_PALETTE_STYLE = stringPreferencesKey("album_art_palette_style_v1")
         val ALBUM_ART_COLOR_ACCURACY = intPreferencesKey("album_art_color_accuracy_v1")
         val APP_THEME_MODE = stringPreferencesKey("app_theme_mode")
+        val APP_COLOR_SOURCE = stringPreferencesKey("app_color_source_v1")
     }
 
     val appThemeModeFlow: Flow<String> = dataStore.data.map { preferences ->
@@ -29,8 +30,21 @@ class ThemePreferencesRepository @Inject constructor(
         preferences[Keys.PLAYER_THEME_PREFERENCE] ?: ThemePreference.ALBUM_ART
     }
 
+    val appColorSourceFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[Keys.APP_COLOR_SOURCE] ?: AppColorSource.SYSTEM
+    }
+
+    /**
+     * Resolves the palette style. When the user has never picked one explicitly, the default
+     * depends on the app color source: Egnus for the album-art theme, Tonal Spot otherwise.
+     */
     val albumArtPaletteStyleFlow: Flow<AlbumArtPaletteStyle> = dataStore.data.map { preferences ->
-        AlbumArtPaletteStyle.fromStorageKey(preferences[Keys.ALBUM_ART_PALETTE_STYLE])
+        val stored = preferences[Keys.ALBUM_ART_PALETTE_STYLE]
+        when {
+            stored != null -> AlbumArtPaletteStyle.fromStorageKey(stored)
+            preferences[Keys.APP_COLOR_SOURCE] == AppColorSource.ALBUM_ART -> AlbumArtPaletteStyle.EGNUS
+            else -> AlbumArtPaletteStyle.default
+        }
     }
 
     val albumArtColorAccuracyFlow: Flow<Int> = dataStore.data.map { preferences ->
@@ -40,6 +54,11 @@ class ThemePreferencesRepository @Inject constructor(
     suspend fun setPlayerThemePreference(themeMode: String) =
         dataStore.edit { preferences ->
             preferences[Keys.PLAYER_THEME_PREFERENCE] = themeMode
+        }
+
+    suspend fun setAppColorSource(colorSource: String) =
+        dataStore.edit { preferences ->
+            preferences[Keys.APP_COLOR_SOURCE] = colorSource
         }
 
     suspend fun setAppThemeMode(themeMode: String) =

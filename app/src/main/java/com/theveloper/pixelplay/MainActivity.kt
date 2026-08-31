@@ -135,6 +135,9 @@ import com.theveloper.pixelplay.presentation.navigation.Screen
 import com.theveloper.pixelplay.presentation.screens.SetupScreen
 import com.theveloper.pixelplay.presentation.viewmodel.MainViewModel
 import com.theveloper.pixelplay.presentation.viewmodel.PlayerViewModel
+import com.theveloper.pixelplay.presentation.viewmodel.ThemeStateHolder
+import com.theveloper.pixelplay.presentation.components.AmbientAlbumBackground
+import com.theveloper.pixelplay.data.preferences.AppColorSource
 import com.theveloper.pixelplay.ui.theme.PixelPlayTheme
 import com.theveloper.pixelplay.ui.theme.LocalShowScrollbar
 import com.theveloper.pixelplay.utils.CrashHandler
@@ -185,6 +188,8 @@ class MainActivity : ComponentActivity() {
     lateinit var themePreferencesRepository: ThemePreferencesRepository
     @Inject
     lateinit var syncManager: SyncManager
+    @Inject
+    lateinit var themeStateHolder: ThemeStateHolder
     // For handling shortcut navigation - using StateFlow so composables can observe changes
     private val _pendingPlaylistNavigation = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
     private val _pendingShuffleAll = kotlinx.coroutines.flow.MutableStateFlow(false)
@@ -248,6 +253,24 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.LIGHT -> false
                 else -> systemDarkTheme
             }
+
+            val appColorSource by themePreferencesRepository.appColorSourceFlow
+                .collectAsStateWithLifecycle(initialValue = AppColorSource.SYSTEM)
+            val albumColorSchemePair by themeStateHolder.currentAlbumArtColorSchemePair
+                .collectAsStateWithLifecycle()
+            val ambientAlbumArtUri by themeStateHolder.currentAlbumArtUri
+                .collectAsStateWithLifecycle()
+            val disableBlurAllOver by userPreferencesRepository.disableBlurAllOverFlow
+                .collectAsStateWithLifecycle(initialValue = false)
+
+            val followAlbumArt = appColorSource == AppColorSource.ALBUM_ART
+            // No artwork (or nothing playing) means no album palette: fall back to the normal
+            // app theme rather than keeping the previous track's colours around.
+            val appAlbumSchemePair = albumColorSchemePair.takeIf { followAlbumArt }
+            val ambientActive = followAlbumArt && appAlbumSchemePair != null
+            val ambientOpaqueScheme = appAlbumSchemePair?.let {
+                if (useDarkTheme) it.dark else it.light
+            }
             val isSetupComplete by mainViewModel.isSetupComplete.collectAsStateWithLifecycle()
             
             // Crash report dialog state
@@ -290,7 +313,9 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(LocalShowScrollbar provides showScrollbar) {
                 PixelPlayTheme(
-                    darkTheme = useDarkTheme
+                    darkTheme = useDarkTheme,
+                    colorSchemePairOverride = appAlbumSchemePair,
+                    ambientAlbumArt = ambientActive
                 ) {
                     var contentVisible by remember { mutableStateOf(false) }
                     val contentAlpha by animateFloatAsState(
@@ -303,6 +328,18 @@ class MainActivity : ComponentActivity() {
                         // Delay slightly to ensure first frame layout is done behind Splash
                         delay(100)
                         contentVisible = true
+                    }
+
+                    // Ambient backdrop sits behind everything; the app's surfaces are
+                    // translucent in this mode so it reads through as coloured light.
+                    Box(modifier = Modifier.fillMaxSize()) {
+                    if (ambientActive && ambientOpaqueScheme != null) {
+                        AmbientAlbumBackground(
+                            albumArtUri = ambientAlbumArtUri,
+                            colorScheme = ambientOpaqueScheme,
+                            blurEnabled = !disableBlurAllOver,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
 
                     Surface(
@@ -347,6 +384,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                    }
                     }
                 }
             }

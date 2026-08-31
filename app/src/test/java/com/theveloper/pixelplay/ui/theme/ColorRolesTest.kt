@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import com.google.android.material.color.utilities.DynamicScheme
 import com.google.android.material.color.utilities.Hct
+import com.google.android.material.color.utilities.SchemeContent
 import com.google.android.material.color.utilities.SchemeExpressive
 import com.google.android.material.color.utilities.SchemeFruitSalad
 import com.google.android.material.color.utilities.SchemeTonalSpot
@@ -163,6 +164,16 @@ class ColorRolesTest {
             AlbumArtPaletteStyle.VIBRANT -> SchemeVibrant(sourceHct, isDark, 0.0)
             AlbumArtPaletteStyle.EXPRESSIVE -> SchemeExpressive(sourceHct, isDark, 0.0)
             AlbumArtPaletteStyle.FRUIT_SALAD -> SchemeFruitSalad(sourceHct, isDark, 0.0)
+            // Mirrors temperEgnusSource(): Egnus keeps the hue but clamps chroma and tone.
+            AlbumArtPaletteStyle.EGNUS -> SchemeContent(
+                Hct.from(
+                    sourceHct.hue,
+                    sourceHct.chroma.coerceIn(16.0, 68.0),
+                    sourceHct.tone.coerceIn(32.0, 74.0)
+                ),
+                isDark,
+                0.0
+            )
         }
     }
 

@@ -11,6 +11,7 @@ import com.google.android.material.color.utilities.DynamicScheme
 import com.google.android.material.color.utilities.Hct
 import com.google.android.material.color.utilities.MathUtils
 import com.google.android.material.color.utilities.QuantizerCelebi
+import com.google.android.material.color.utilities.SchemeContent
 import com.google.android.material.color.utilities.SchemeExpressive
 import com.google.android.material.color.utilities.SchemeFruitSalad
 import com.google.android.material.color.utilities.SchemeMonochrome
@@ -96,6 +97,11 @@ private const val ACCURATE_CHROMA_BELOW_WEIGHT = 0.04
 private const val ACCURATE_CUTOFF_CHROMA = 3.5
 private const val ACCURATE_MAX_HUE_DIFFERENCE = 64
 private const val ACCURATE_MIN_HUE_DIFFERENCE = 10
+
+private const val EGNUS_MIN_CHROMA = 16.0
+private const val EGNUS_MAX_CHROMA = 68.0
+private const val EGNUS_MIN_TONE = 32.0
+private const val EGNUS_MAX_TONE = 74.0
 
 fun clearExtractedColorCache() {
     extractedColorCache.evictAll()
@@ -539,7 +545,19 @@ private fun createDynamicScheme(
         AlbumArtPaletteStyle.VIBRANT -> SchemeVibrant(sourceHct, isDark, 0.0)
         AlbumArtPaletteStyle.EXPRESSIVE -> SchemeExpressive(sourceHct, isDark, 0.0)
         AlbumArtPaletteStyle.FRUIT_SALAD -> SchemeFruitSalad(sourceHct, isDark, 0.0)
+        AlbumArtPaletteStyle.EGNUS -> SchemeContent(temperEgnusSource(sourceHct), isDark, 0.0)
     }
+}
+
+/**
+ * Egnus keeps the artwork's own hue but tames the extremes so a single neon or washed-out
+ * cover cannot produce an unreadable UI: chroma is clamped into a usable band and the tone
+ * is pulled toward a mid anchor, leaving the scheme faithful but stable.
+ */
+private fun temperEgnusSource(sourceHct: Hct): Hct {
+    val chroma = sourceHct.chroma.coerceIn(EGNUS_MIN_CHROMA, EGNUS_MAX_CHROMA)
+    val tone = sourceHct.tone.coerceIn(EGNUS_MIN_TONE, EGNUS_MAX_TONE)
+    return Hct.from(sourceHct.hue, chroma, tone)
 }
 
 private fun averageColorArgb(pixels: IntArray): Int {

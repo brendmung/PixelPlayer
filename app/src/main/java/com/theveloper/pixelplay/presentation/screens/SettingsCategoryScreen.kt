@@ -69,6 +69,7 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Style
@@ -159,6 +160,7 @@ import com.theveloper.pixelplay.data.backup.model.BackupTransferProgressUpdate
 import com.theveloper.pixelplay.data.backup.model.ModuleRestoreDetail
 import com.theveloper.pixelplay.data.backup.model.RestorePlan
 import com.theveloper.pixelplay.data.preferences.AppLanguage
+import com.theveloper.pixelplay.data.preferences.AppColorSource
 import com.theveloper.pixelplay.data.preferences.AppThemeMode
 import com.theveloper.pixelplay.data.preferences.CollagePattern
 import com.theveloper.pixelplay.data.preferences.CarouselStyle
@@ -563,6 +565,17 @@ fun SettingsCategoryScreen(
                                     selectedKey = uiState.appThemeMode,
                                     onSelectionChanged = { settingsViewModel.setAppThemeMode(it) },
                                     leadingIcon = { Icon(Icons.Outlined.LightMode, null, tint = MaterialTheme.colorScheme.secondary) }
+                                )
+                                ThemeSelectorItem(
+                                    label = stringResource(R.string.settings_app_color_source_title),
+                                    description = stringResource(R.string.settings_app_color_source_subtitle),
+                                    options = mapOf(
+                                        AppColorSource.SYSTEM to stringResource(R.string.settings_app_color_source_system),
+                                        AppColorSource.ALBUM_ART to stringResource(R.string.settings_app_color_source_album_art)
+                                    ),
+                                    selectedKey = uiState.appColorSource,
+                                    onSelectionChanged = { settingsViewModel.setAppColorSource(it) },
+                                    leadingIcon = { Icon(Icons.Outlined.Palette, null, tint = MaterialTheme.colorScheme.secondary) }
                                 )
                                 SwitchSettingItem(
                                     title = stringResource(R.string.settings_smooth_corners_title),
