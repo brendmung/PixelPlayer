@@ -88,6 +88,10 @@ import com.theveloper.pixelplay.presentation.viewmodel.PlayerSheetState
 import com.theveloper.pixelplay.presentation.viewmodel.PlayerViewModel
 import com.theveloper.pixelplay.presentation.viewmodel.StablePlayerState
 import com.theveloper.pixelplay.ui.theme.LocalPixelPlayDarkTheme
+import com.theveloper.pixelplay.ui.theme.LocalOpaqueColorScheme
+import com.theveloper.pixelplay.ui.theme.LocalAmbientAlbumArt
+import com.theveloper.pixelplay.ui.theme.LocalAlbumArtPaletteStyle
+import com.theveloper.pixelplay.data.preferences.AlbumArtPaletteStyle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -548,7 +552,11 @@ fun UnifiedPlayerSheetV2(
         currentSong = currentSong,
         themedAlbumArtUri = themedAlbumArtUri,
         preparingSongId = preparingSongId,
-        systemColorScheme = MaterialTheme.colorScheme
+        // The opaque scheme, not MaterialTheme's: in ambient mode the latter's roles are
+        // translucent, and the sheet falling back to them is what washed the player out.
+        systemColorScheme = LocalOpaqueColorScheme.current ?: MaterialTheme.colorScheme,
+        ambient = LocalAmbientAlbumArt.current &&
+            LocalAlbumArtPaletteStyle.current == AlbumArtPaletteStyle.EGNUS
     )
     val albumColorScheme = sheetThemeState.albumColorScheme
     val miniPlayerScheme = sheetThemeState.miniPlayerScheme

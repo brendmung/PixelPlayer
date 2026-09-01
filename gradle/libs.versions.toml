@@ -21,6 +21,7 @@ foundation = "1.11.3"
 glance = "1.3.0-alpha01"
 graphicsShapes = "1.1.0"
 gson = "2.14.0"
+haze = "1.7.3"
 hiltAndroid = "2.59.2"
 hiltNavigationCompose = "1.3.0"
 ktor = "3.5.0"
@@ -163,6 +164,8 @@ androidx-paging-compose = { module = "androidx.paging:paging-compose", version.r
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 capturable = { module = "dev.shreyaspatil:capturable", version.ref = "capturable" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 codeview = { module = "io.github.amrdeveloper:codeview", version.ref = "codeview" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose-dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "composeDnd" }

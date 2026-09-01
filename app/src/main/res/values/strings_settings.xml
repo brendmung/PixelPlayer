@@ -178,6 +178,10 @@
     <string name="settings_language_turkish">Türkçe</string>
     <string name="settings_app_theme_title">App Theme</string>
     <string name="settings_app_theme_subtitle">Switch between light, dark, or follow system appearance.</string>
+    <string name="settings_app_color_source_title">App colors</string>
+    <string name="settings_app_color_source_subtitle">Choose where the app palette comes from</string>
+    <string name="settings_app_color_source_system">System</string>
+    <string name="settings_app_color_source_album_art">Follow album art</string>
     <string name="settings_theme_light">Light Theme</string>
     <string name="settings_theme_dark">Dark Theme</string>
     <string name="settings_theme_follow_system">Follow System</string>
@@ -246,6 +250,8 @@
     <string name="settings_palette_style_expressive_desc">Bold hue shifts and contrast.</string>
     <string name="settings_palette_style_fruit_salad">Fruit Salad</string>
     <string name="settings_palette_style_fruit_salad_desc">Playful rotated accents.</string>
+    <string name="settings_palette_style_egnus">Egnus</string>
+    <string name="settings_palette_style_egnus_desc">Stays faithful to the colour of the cover for deep, ambient surfaces.</string>
     <string name="settings_palette_style_color_accuracy_title">Color accuracy</string>
     <string name="settings_palette_style_color_accuracy_subtitle">0 keeps the current tuning. Higher values stay closer to the album art\'s dominant hue.</string>
     <string name="settings_palette_style_accuracy_current">Current</string>

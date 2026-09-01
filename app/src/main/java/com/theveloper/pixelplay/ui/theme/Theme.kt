@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
@@ -24,6 +25,9 @@ import com.theveloper.pixelplay.presentation.viewmodel.ColorSchemePair
 import androidx.core.graphics.ColorUtils
 
 val LocalPixelPlayDarkTheme = staticCompositionLocalOf { false }
+
+/** True while the app is themed from album art and the ambient artwork backdrop is drawn. */
+val LocalAmbientAlbumArt = staticCompositionLocalOf { false }
 val LocalShowScrollbar = staticCompositionLocalOf { true }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
@@ -106,10 +110,12 @@ val LightColorScheme = lightColorScheme(
     onError = PixelPlayWhite
 )
 
+
 @Composable
 fun PixelPlayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colorSchemePairOverride: ColorSchemePair? = null,
+    ambientAlbumArt: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -132,14 +138,28 @@ fun PixelPlayTheme(
         else -> LightColorScheme
     }
 
+    // Status/navigation bar icon contrast is decided from the opaque scheme; the ambient
+    // variant's transparent background carries no usable luminance.
     PixelPlayStatusBarStyle(
         color = finalColorScheme.background,
         navigationColor = finalColorScheme.background
     )
 
-    CompositionLocalProvider(LocalPixelPlayDarkTheme provides darkTheme) {
+    val appliedColorScheme = if (ambientAlbumArt) {
+        finalColorScheme.toAmbientColorScheme()
+    } else {
+        finalColorScheme
+    }
+
+    CompositionLocalProvider(
+        LocalPixelPlayDarkTheme provides darkTheme,
+        LocalAmbientAlbumArt provides ambientAlbumArt,
+        // Surfaces that must stay opaque (the player sheet, solid-palette screens) theme from
+        // this instead of MaterialTheme.colorScheme.
+        LocalOpaqueColorScheme provides finalColorScheme
+    ) {
         MaterialTheme(
-            colorScheme = finalColorScheme,
+            colorScheme = appliedColorScheme,
             typography = Typography,
             shapes = Shapes,
             content = content

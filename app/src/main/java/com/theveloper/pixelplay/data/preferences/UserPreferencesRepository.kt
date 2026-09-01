@@ -42,6 +42,16 @@ object ThemePreference {
     const val GLOBAL = "global"
 }
 
+/**
+ * Where the app-wide color palette comes from.
+ * [ALBUM_ART] drives the entire app (not just the player) from the current track's artwork
+ * and enables the ambient artwork background.
+ */
+object AppColorSource {
+    const val SYSTEM = "system"
+    const val ALBUM_ART = "album_art"
+}
+
 object AppThemeMode {
     const val FOLLOW_SYSTEM = "follow_system"
     const val LIGHT = "light"
