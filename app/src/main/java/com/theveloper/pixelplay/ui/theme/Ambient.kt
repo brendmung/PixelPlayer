@@ -83,10 +83,12 @@ private data class FrostSpec(
 )
 
 private fun AmbientFrostLevel.spec(): FrostSpec = when (this) {
-    AmbientFrostLevel.Panel -> FrostSpec(blurRadiusDp = 20f, tintAlpha = 0.34f, noiseFactor = 0.04f)
-    AmbientFrostLevel.Card -> FrostSpec(blurRadiusDp = 12f, tintAlpha = 0.26f, noiseFactor = 0.03f)
-    AmbientFrostLevel.Control -> FrostSpec(blurRadiusDp = 20f, tintAlpha = 0.52f, noiseFactor = 0.02f)
-    AmbientFrostLevel.Header -> FrostSpec(blurRadiusDp = 30f, tintAlpha = 0.46f, noiseFactor = 0.03f)
+    AmbientFrostLevel.Panel -> FrostSpec(blurRadiusDp = 28f, tintAlpha = 0.10f, noiseFactor = 0.03f)
+    AmbientFrostLevel.Card -> FrostSpec(blurRadiusDp = 16f, tintAlpha = 0.12f, noiseFactor = 0.02f)
+    AmbientFrostLevel.Control -> FrostSpec(blurRadiusDp = 24f, tintAlpha = 0.26f, noiseFactor = 0.02f)
+    // Low tint on purpose: the header should look like the backdrop out of focus, not like a
+    // coloured band sitting on top of it.
+    AmbientFrostLevel.Header -> FrostSpec(blurRadiusDp = 46f, tintAlpha = 0.12f, noiseFactor = 0.02f)
     // Heavy blur, barely any tint: the nav bar should read as the backdrop out of focus,
     // not as a coloured bar laid over it.
     AmbientFrostLevel.NavBar -> FrostSpec(blurRadiusDp = 56f, tintAlpha = 0.16f, noiseFactor = 0.02f)
@@ -150,7 +152,11 @@ fun Modifier.ambientFrost(
         .hazeEffect(
             state = hazeState,
             style = HazeStyle(
-                backgroundColor = opaqueScheme.surfaceContainerLowest,
+                // Transparent, NOT a surface role. Haze composites the blurred sample onto
+                // this colour, and the app's own surfaces are transparent in ambient mode, so
+                // a dark role here was painting every frosted panel almost black regardless
+                // of the artwork behind it.
+                backgroundColor = Color.Transparent,
                 tint = HazeTint(resolvedTint.copy(alpha = spec.tintAlpha)),
                 blurRadius = spec.blurRadiusDp.dp,
                 noiseFactor = spec.noiseFactor,
@@ -268,18 +274,36 @@ fun AmbientDialog(
     content: @Composable () -> Unit
 ) {
     val hazeState = LocalHazeState.current
+    // Inside a dialog window, MaterialTheme's softened container roles would let the screen
+    // behind show straight through any surface that has not opted into a frost. Hand the
+    // dialog opaque roles by default; ambientFrost still works, because it reads the opaque
+    // scheme and the ambient flag directly rather than MaterialTheme.
+    val dialogContent: @Composable () -> Unit = {
+        val opaqueScheme = LocalOpaqueColorScheme.current
+        if (opaqueScheme != null && LocalAmbientAlbumArt.current) {
+            MaterialTheme(
+                colorScheme = opaqueScheme,
+                typography = MaterialTheme.typography,
+                shapes = MaterialTheme.shapes,
+                content = content
+            )
+        } else {
+            content()
+        }
+    }
+
     if (hazeState != null) {
         HazeDialog(
             hazeState = hazeState,
             onDismissRequest = onDismissRequest,
             properties = properties,
-            content = content
+            content = dialogContent
         )
     } else {
         Dialog(
             onDismissRequest = onDismissRequest,
             properties = properties,
-            content = content
+            content = dialogContent
         )
     }
 }

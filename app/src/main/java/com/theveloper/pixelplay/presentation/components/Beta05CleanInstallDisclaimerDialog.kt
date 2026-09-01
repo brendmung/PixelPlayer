@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.BasicAlertDialog
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +60,7 @@ fun Beta05CleanInstallDisclaimerDialog(
                 .padding(horizontal = 0.dp)
                 .widthIn(max = 420.dp),
             shape = cardShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = opaqueColorScheme().surfaceContainerHigh,
             tonalElevation = 8.dp,
         ) {
             Column(
@@ -71,7 +72,7 @@ fun Beta05CleanInstallDisclaimerDialog(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = blockShape,
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = opaqueColorScheme().surfaceContainer,
                 ) {
                     Column(
                         modifier = Modifier
@@ -86,20 +87,20 @@ fun Beta05CleanInstallDisclaimerDialog(
                         ) {
                             Surface(
                                 shape = AbsoluteSmoothCornerShape(12.dp, 60),
-                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                color = opaqueColorScheme().secondaryContainer,
                             ) {
                                 Text(
                                     text = stringResource(R.string.beta05_title),
                                     modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    color = opaqueColorScheme().onSecondaryContainer,
                                 )
                             }
 
                             Surface(
                                 shape = AbsoluteSmoothCornerShape(16.dp, 60),
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = opaqueColorScheme().primaryContainer,
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.rounded_dataset_24),
@@ -121,7 +122,7 @@ fun Beta05CleanInstallDisclaimerDialog(
                         Text(
                             text = stringResource(R.string.beta05_clean_install_body),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = opaqueColorScheme().onSurfaceVariant,
                         )
                     }
                 }
@@ -129,7 +130,7 @@ fun Beta05CleanInstallDisclaimerDialog(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = blockShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    color = opaqueColorScheme().surfaceContainerLow,
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -156,7 +157,7 @@ fun Beta05CleanInstallDisclaimerDialog(
                             Text(
                                 text = stringResource(R.string.beta05_if_wrong_meta_body),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = opaqueColorScheme().onSurfaceVariant,
                             )
                         }
                     }
