@@ -124,6 +124,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.AmbientDialog
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
@@ -1534,6 +1536,10 @@ fun SettingsCategoryScreen(
 
     if (showPaletteRegenerateSheet) {
         ModalBottomSheet(
+            // Sheets render in their own window, so nothing of the app is behind them to
+            // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+            // surface roles make the popup read as washed out.
+            containerColor = opaqueColorScheme().surfaceContainerLow,
             onDismissRequest = {
                 if (!isAnyPaletteRegenerateRunning) {
                     showPaletteRegenerateSheet = false
@@ -1953,7 +1959,7 @@ private fun BackupSectionSelectionDialog(
     }
 
     if (transitionState.currentState || transitionState.targetState) {
-        Dialog(
+        AmbientDialog(
             onDismissRequest = { closeDialog(onDismiss) },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
@@ -2363,7 +2369,7 @@ private fun BackupTransferProgressDialog(progress: BackupTransferProgressUpdate)
         progress.totalSteps
     )
 
-    Dialog(
+    AmbientDialog(
         onDismissRequest = {},
         properties = DialogProperties(
             dismissOnBackPress = false,
@@ -2499,7 +2505,7 @@ private fun ImportFileSelectionDialog(
     }
 
     if (transitionState.currentState || transitionState.targetState) {
-        Dialog(
+        AmbientDialog(
             onDismissRequest = { closeDialog(onDismiss) },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,

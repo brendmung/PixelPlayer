@@ -119,7 +119,8 @@ fun AmbientAlbumBackground(
                 .background(
                     Brush.verticalGradient(
                         0f to glowColor.copy(alpha = GlowAlpha),
-                        0.45f to Color.Transparent
+                        0.45f to glowColor.copy(alpha = GlowAlpha * 0.35f),
+                        1f to Color.Transparent
                     )
                 )
         )
@@ -131,9 +132,12 @@ fun AmbientAlbumBackground(
                 .background(
                     Brush.verticalGradient(
                         0f to headerTint.copy(alpha = HeaderTintAlpha),
-                        0.22f to headerTint.copy(alpha = HeaderTintAlpha * 0.5f),
-                        0.55f to baseColor.copy(alpha = 0.82f),
-                        1f to baseColor
+                        0.22f to headerTint.copy(alpha = HeaderTintAlpha * 0.55f),
+                        // Stops well short of fully opaque. Previously this settled onto a
+                        // solid base colour by mid-screen, which left everything below the
+                        // header sitting on a flat dark field with no artwork left to blur.
+                        0.60f to baseColor.copy(alpha = 0.46f),
+                        1f to baseColor.copy(alpha = 0.72f)
                     )
                 )
         )

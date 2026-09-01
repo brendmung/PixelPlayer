@@ -22,6 +22,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeDialog
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 /**
  * Shared blur source for the ambient artwork backdrop. Null whenever the album-art app theme
@@ -84,7 +87,9 @@ private fun AmbientFrostLevel.spec(): FrostSpec = when (this) {
     AmbientFrostLevel.Card -> FrostSpec(blurRadiusDp = 12f, tintAlpha = 0.26f, noiseFactor = 0.03f)
     AmbientFrostLevel.Control -> FrostSpec(blurRadiusDp = 20f, tintAlpha = 0.52f, noiseFactor = 0.02f)
     AmbientFrostLevel.Header -> FrostSpec(blurRadiusDp = 30f, tintAlpha = 0.46f, noiseFactor = 0.03f)
-    AmbientFrostLevel.NavBar -> FrostSpec(blurRadiusDp = 36f, tintAlpha = 0.62f, noiseFactor = 0.03f)
+    // Heavy blur, barely any tint: the nav bar should read as the backdrop out of focus,
+    // not as a coloured bar laid over it.
+    AmbientFrostLevel.NavBar -> FrostSpec(blurRadiusDp = 56f, tintAlpha = 0.16f, noiseFactor = 0.02f)
     AmbientFrostLevel.Dialog -> FrostSpec(blurRadiusDp = 48f, tintAlpha = 0.74f, noiseFactor = 0.05f)
 }
 
@@ -122,7 +127,8 @@ fun Modifier.ambientFrost(
         AmbientFrostLevel.Card -> opaqueScheme.surfaceContainerHigh
         AmbientFrostLevel.Control -> opaqueScheme.primaryContainer
         AmbientFrostLevel.Header -> opaqueScheme.primaryContainer
-        AmbientFrostLevel.NavBar -> opaqueScheme.surfaceContainer
+        // Desaturated so the blur carries the colour rather than the tint doing it.
+        AmbientFrostLevel.NavBar -> opaqueScheme.surfaceContainerLowest.boostChroma(0.35f)
         AmbientFrostLevel.Dialog -> opaqueScheme.surfaceContainer
     }
 
@@ -244,3 +250,36 @@ fun SolidSurfaceTheme(
  */
 @Composable
 fun opaqueColorScheme(): ColorScheme = LocalOpaqueColorScheme.current ?: MaterialTheme.colorScheme
+
+/**
+ * A [Dialog] whose window can sample the app's ambient backdrop.
+ *
+ * A dialog renders in its own window, so an ordinary [ambientFrost] inside one has no app
+ * content behind it to blur. Haze's dialog host bridges the two windows, which lets surfaces
+ * inside the dialog frost against the same backdrop the rest of the app uses.
+ *
+ * Falls back to a plain [Dialog] when the album-art theme is off, so behaviour is unchanged
+ * for everyone else.
+ */
+@Composable
+fun AmbientDialog(
+    onDismissRequest: () -> Unit,
+    properties: DialogProperties = DialogProperties(),
+    content: @Composable () -> Unit
+) {
+    val hazeState = LocalHazeState.current
+    if (hazeState != null) {
+        HazeDialog(
+            hazeState = hazeState,
+            onDismissRequest = onDismissRequest,
+            properties = properties,
+            content = content
+        )
+    } else {
+        Dialog(
+            onDismissRequest = onDismissRequest,
+            properties = properties,
+            content = content
+        )
+    }
+}

@@ -37,6 +37,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -66,6 +67,10 @@ fun AlbumMultiSelectionOptionSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
+        // Sheets render in their own window, so nothing of the app is behind them to
+        // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+        // surface roles make the popup read as washed out.
+        containerColor = opaqueColorScheme().surfaceContainerLow,
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {

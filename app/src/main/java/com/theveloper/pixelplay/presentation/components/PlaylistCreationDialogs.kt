@@ -85,6 +85,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.AmbientDialog
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.draw.alpha
@@ -127,7 +128,7 @@ fun PlaylistCreationTypeDialog(
         smoothnessAsPercentBR = 60
     )
 
-    Dialog(
+    AmbientDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = true)
     ) {
@@ -309,7 +310,7 @@ fun CreateAiPlaylistDialog(
     transitionState.targetState = visible
 
     if (transitionState.currentState || transitionState.targetState) {
-        Dialog(
+        AmbientDialog(
             onDismissRequest = {
                 if (!isGenerating) {
                     onDismiss()

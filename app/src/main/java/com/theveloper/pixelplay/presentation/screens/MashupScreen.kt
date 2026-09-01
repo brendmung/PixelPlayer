@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -132,6 +133,10 @@ fun MashupScreen(
 
             if (mashupUiState.showSongPickerForDeck != null) {
                 ModalBottomSheet(
+                    // Sheets render in their own window, so nothing of the app is behind them to
+                    // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+                    // surface roles make the popup read as washed out.
+                    containerColor = opaqueColorScheme().surfaceContainerLow,
                     onDismissRequest = { mashupViewModel.closeSongPicker() },
                     sheetState = sheetState
                 ) {

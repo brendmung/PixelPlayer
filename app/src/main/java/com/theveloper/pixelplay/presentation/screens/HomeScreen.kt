@@ -58,6 +58,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -514,6 +515,10 @@ fun HomeScreen(
     }
     if (showOptionsBottomSheet) {
         ModalBottomSheet(
+            // Sheets render in their own window, so nothing of the app is behind them to
+            // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+            // surface roles make the popup read as washed out.
+            containerColor = opaqueColorScheme().surfaceContainerLow,
             onDismissRequest = { showOptionsBottomSheet = false },
             sheetState = sheetState
         ) {
@@ -533,6 +538,10 @@ fun HomeScreen(
     }
     if (showChangelogBottomSheet) {
         ModalBottomSheet(
+            // Sheets render in their own window, so nothing of the app is behind them to
+            // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+            // surface roles make the popup read as washed out.
+            containerColor = opaqueColorScheme().surfaceContainerLow,
             onDismissRequest = { showChangelogBottomSheet = false },
             sheetState = sheetState
         ) {
@@ -541,6 +550,10 @@ fun HomeScreen(
     }
     if (showBetaInfoBottomSheet) {
         ModalBottomSheet(
+            // Sheets render in their own window, so nothing of the app is behind them to
+            // blur. Resolve the container opaquely, otherwise the ambient theme's softened
+            // surface roles make the popup read as washed out.
+            containerColor = opaqueColorScheme().surfaceContainerLow,
             onDismissRequest = { showBetaInfoBottomSheet = false },
             sheetState = betaSheetState,
             //contentWindowInsets = { WindowInsets.statusBars.only(WindowInsets.statusBars) }
