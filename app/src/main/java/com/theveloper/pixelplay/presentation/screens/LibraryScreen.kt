@@ -50,6 +50,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
 import com.theveloper.pixelplay.ui.theme.ambientFrost
+import com.theveloper.pixelplay.ui.theme.isAmbientActive
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.filled.Album
@@ -1026,15 +1027,16 @@ fun LibraryScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .background(color = headerContainerColor)
+                    .background(
+                        color = if (isAmbientActive) Color.Transparent else headerContainerColor
+                    )
                     .fillMaxSize()
             ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 0.dp, vertical = 0.dp), // Removed horizontal padding for more space
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = AbsoluteSmoothCornerShape(
+                // THE content container for the whole library body: the shuffle row and the
+                // list both sit on it. It used to paint `surface`, the one role deliberately
+                // left opaque, so it covered the backdrop with a flat dark slab — visible as a
+                // black band around the shuffle row, where no list card hides it.
+                val libraryContainerShape = AbsoluteSmoothCornerShape(
                         cornerRadiusTL = 34.dp,
                         smoothnessAsPercentBL = 60,
                         cornerRadiusBL = 0.dp,
@@ -1043,8 +1045,17 @@ fun LibraryScreen(
                         smoothnessAsPercentTR = 60,
                         cornerRadiusTR = 34.dp,
                         smoothnessAsPercentTL = 60
-                    )
-                    // shape = AbsoluteSmoothCornerShape(cornerRadiusTL = 24.dp, smoothnessAsPercentTR = 60, /*...*/) // Your custom shape
+                )
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .ambientFrost(
+                            level = AmbientFrostLevel.Panel,
+                            shape = libraryContainerShape,
+                            fallbackColor = Color.Transparent
+                        ),
+                    color = if (isAmbientActive) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    shape = libraryContainerShape
                 ) {
                     Column(Modifier.fillMaxSize()) {
                         // OPTIMIZACIÓN: La lógica de ordenamiento ahora es más eficiente.
@@ -1505,23 +1516,6 @@ fun LibraryScreen(
 
                         // Box wrapper to allow floating SelectionCountPill overlay
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // One frosted panel for the whole list section rather than one per
-                            // row: a haze node per list item would mean hundreds of backdrop
-                            // samples while scrolling. The song cards inside stay ordinary
-                            // translucent surfaces, which in ambient mode already carry the
-                            // artwork tint, so the panel reads as darker glass behind them.
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .ambientFrost(
-                                        level = AmbientFrostLevel.Panel,
-                                        shape = RoundedCornerShape(
-                                            topStart = 24.dp,
-                                            topEnd = 24.dp
-                                        ),
-                                        fallbackColor = Color.Transparent
-                                    )
-                            )
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier

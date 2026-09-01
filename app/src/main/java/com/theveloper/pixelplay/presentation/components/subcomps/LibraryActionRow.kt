@@ -61,8 +61,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
-import com.theveloper.pixelplay.ui.theme.ambientFrost
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
@@ -114,14 +112,6 @@ fun LibraryActionRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            // Frosted band behind the shuffle/sort controls so the row sits on the ambient
-            // backdrop instead of floating on it. Transparent fallback keeps the original
-            // look when the album-art theme is off.
-            .ambientFrost(
-                level = AmbientFrostLevel.Panel,
-                shape = RoundedCornerShape(22.dp),
-                fallbackColor = Color.Transparent
-            )
             .padding(start = 4.dp),
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
