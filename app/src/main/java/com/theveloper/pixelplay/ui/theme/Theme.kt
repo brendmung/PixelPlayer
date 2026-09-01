@@ -110,34 +110,6 @@ val LightColorScheme = lightColorScheme(
     onError = PixelPlayWhite
 )
 
-/**
- * Opens up the opaque container roles so the ambient artwork backdrop reads through them.
- * Text and icon roles stay fully opaque so contrast is unaffected; only the fills that would
- * otherwise hide the backdrop are softened, which is what gives dark filled buttons their glow.
- */
-private fun ColorScheme.toAmbientColorScheme(): ColorScheme = copy(
-    // Only `background` fully opens up: it is the app root fill, so clearing it is what lets
-    // the backdrop through. `surface` stays opaque because dialogs and bottom sheets rely on
-    // it to stay readable over arbitrary content.
-    background = Color.Transparent,
-    surfaceContainerLowest = surfaceContainerLowest.copy(alpha = AmbientSurfaceAlpha),
-    surfaceContainerLow = surfaceContainerLow.copy(alpha = AmbientSurfaceAlpha),
-    surfaceContainer = surfaceContainer.copy(alpha = AmbientSurfaceAlpha),
-    surfaceContainerHigh = surfaceContainerHigh.copy(alpha = AmbientRaisedSurfaceAlpha),
-    surfaceContainerHighest = surfaceContainerHighest.copy(alpha = AmbientRaisedSurfaceAlpha),
-    surfaceVariant = surfaceVariant.copy(alpha = AmbientRaisedSurfaceAlpha),
-    primary = primary.copy(alpha = AmbientFilledAlpha),
-    secondary = secondary.copy(alpha = AmbientFilledAlpha),
-    tertiary = tertiary.copy(alpha = AmbientFilledAlpha),
-    primaryContainer = primaryContainer.copy(alpha = AmbientContainerAlpha),
-    secondaryContainer = secondaryContainer.copy(alpha = AmbientContainerAlpha),
-    tertiaryContainer = tertiaryContainer.copy(alpha = AmbientContainerAlpha)
-)
-
-private const val AmbientSurfaceAlpha = 0.66f
-private const val AmbientRaisedSurfaceAlpha = 0.74f
-private const val AmbientContainerAlpha = 0.70f
-private const val AmbientFilledAlpha = 0.82f
 
 @Composable
 fun PixelPlayTheme(
@@ -181,7 +153,10 @@ fun PixelPlayTheme(
 
     CompositionLocalProvider(
         LocalPixelPlayDarkTheme provides darkTheme,
-        LocalAmbientAlbumArt provides ambientAlbumArt
+        LocalAmbientAlbumArt provides ambientAlbumArt,
+        // Surfaces that must stay opaque (the player sheet, solid-palette screens) theme from
+        // this instead of MaterialTheme.colorScheme.
+        LocalOpaqueColorScheme provides finalColorScheme
     ) {
         MaterialTheme(
             colorScheme = appliedColorScheme,

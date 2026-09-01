@@ -22,12 +22,18 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import com.theveloper.pixelplay.ui.theme.boostChroma
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 
-private const val ArtLayerAlpha = 0.55f
-private const val ArtLayerScale = 1.35f
-private const val HeaderTintAlpha = 0.34f
-private const val GlowAlpha = 0.22f
-private val BlurRadius = 72.dp
+private const val ArtLayerAlpha = 0.68f
+private const val ArtLayerScale = 1.22f
+private const val HeaderTintAlpha = 0.52f
+private const val GlowAlpha = 0.38f
+private val BlurRadius = 38.dp
+/** Artwork colours lose saturation once blurred and alpha-blended; put some of it back. */
+private const val TintChromaBoost = 1.6f
+private const val TintMinChroma = 30.0
 
 /**
  * Ambient artwork backdrop used when the app is themed from album art.
@@ -47,15 +53,29 @@ fun AmbientAlbumBackground(
     albumArtUri: String?,
     colorScheme: ColorScheme,
     modifier: Modifier = Modifier,
-    blurEnabled: Boolean = true
+    blurEnabled: Boolean = true,
+    hazeState: HazeState? = null
 ) {
     val context = LocalContext.current
 
     val baseColor by animateColorAsState(colorScheme.surfaceContainerLowest, tween(700), label = "ambientBase")
-    val headerTint by animateColorAsState(colorScheme.primaryContainer, tween(700), label = "ambientHeader")
-    val glowColor by animateColorAsState(colorScheme.primary, tween(700), label = "ambientGlow")
+    val headerTint by animateColorAsState(
+        colorScheme.primaryContainer.boostChroma(TintChromaBoost, TintMinChroma),
+        tween(700),
+        label = "ambientHeader"
+    )
+    val glowColor by animateColorAsState(
+        colorScheme.primary.boostChroma(TintChromaBoost, TintMinChroma),
+        tween(700),
+        label = "ambientGlow"
+    )
 
-    Box(modifier = modifier.background(baseColor)) {
+    Box(
+        modifier = modifier
+            .background(baseColor)
+            // Everything drawn inside this node is what frosted surfaces elsewhere sample.
+            .then(if (hazeState != null) Modifier.hazeSource(hazeState) else Modifier)
+    ) {
         Crossfade(
             targetState = albumArtUri,
             animationSpec = tween(700),
@@ -65,9 +85,11 @@ fun AmbientAlbumBackground(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(uri)
-                    // Thumbnail-sized on purpose: upscaling a tiny bitmap is most of the blur,
-                    // and it keeps this layer nearly free on every track change.
-                    .size(Size(64, 64))
+                    // Small on purpose: upscaling a low-res bitmap does part of the softening
+                    // and keeps this layer nearly free on every track change. Sized up from
+                    // 64px now that the explicit blur radius is lighter, so the result reads
+                    // as soft colour rather than visible pixel blocks.
+                    .size(Size(128, 128))
                     .crossfade(false)
                     .build(),
                 contentDescription = null,

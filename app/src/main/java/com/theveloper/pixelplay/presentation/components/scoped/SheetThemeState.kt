@@ -19,6 +19,7 @@ import androidx.compose.ui.util.lerp
 import com.theveloper.pixelplay.data.model.Song
 import com.theveloper.pixelplay.data.preferences.ThemePreference
 import com.theveloper.pixelplay.presentation.viewmodel.ColorSchemePair
+import com.theveloper.pixelplay.ui.theme.toAmbientColorScheme
 
 /**
  * Theme state for the player sheet.
@@ -60,7 +61,8 @@ internal fun rememberSheetThemeState(
     currentSong: Song?,
     themedAlbumArtUri: String?,
     preparingSongId: String?,
-    systemColorScheme: ColorScheme
+    systemColorScheme: ColorScheme,
+    ambient: Boolean = false
 ): SheetThemeState {
     val isAlbumArtTheme = playerThemePreference == ThemePreference.ALBUM_ART
     val hasAlbumArt = !currentSong?.albumArtUriString.isNullOrBlank()
@@ -132,8 +134,15 @@ internal fun rememberSheetThemeState(
     // we use a single Animatable<Float> progress [0,1] that interpolates between the
     // previous and the new target ColorScheme manually. This reduces per-frame State reads
     // from 68 → 0 (the lerp runs during the Animatable tick, not during recomposition).
-    val albumColorScheme = rememberBatchAnimatedColorScheme(rawAlbumColorScheme)
-    val miniPlayerScheme = rememberBatchAnimatedColorScheme(rawMiniPlayerScheme)
+    // Under the Egnus palette the player sheet becomes translucent so the app-wide artwork
+    // backdrop shows through it too. Every other palette keeps the schemes opaque, which is
+    // what preserves the original solid now-playing background.
+    val albumColorScheme = rememberBatchAnimatedColorScheme(
+        if (ambient) rawAlbumColorScheme.toAmbientColorScheme() else rawAlbumColorScheme
+    )
+    val miniPlayerScheme = rememberBatchAnimatedColorScheme(
+        if (ambient) rawMiniPlayerScheme.toAmbientColorScheme() else rawMiniPlayerScheme
+    )
 
     val miniAppearProgress = remember { Animatable(0f) }
     LaunchedEffect(currentSong?.id) {
