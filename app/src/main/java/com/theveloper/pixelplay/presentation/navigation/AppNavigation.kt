@@ -28,6 +28,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Color
+import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
+import com.theveloper.pixelplay.ui.theme.ambientFrost
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -82,6 +87,18 @@ fun AppNavigation(
     }
 
     startDestination?.let { initialRoute ->
+        // One frosted panel behind every destination. Screens whose scaffolds use the
+        // translucent surface-container roles show it through, which gives the whole app the
+        // same "darkish section over the global backdrop" treatment without each screen
+        // needing its own haze node.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .ambientFrost(
+                    level = AmbientFrostLevel.Panel,
+                    fallbackColor = Color.Transparent
+                )
+        )
         NavHost(
             navController = navController,
             startDestination = initialRoute,

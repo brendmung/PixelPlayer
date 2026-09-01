@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
+import com.theveloper.pixelplay.ui.theme.ambientFrost
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
@@ -109,9 +111,22 @@ fun TabAnimation(
                 this.transformOrigin = transformOrigin
             }
             .clip(CircleShape)
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(50)
+            // The selected pill keeps its solid accent so it stays unambiguous. Unselected
+            // pills frost instead of painting `surface`, which is opaque and would sit on the
+            // frosted header as solid blobs.
+            .then(
+                if (isSelected) {
+                    Modifier.background(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(50)
+                    )
+                } else {
+                    Modifier.ambientFrost(
+                        level = AmbientFrostLevel.Control,
+                        shape = RoundedCornerShape(50),
+                        fallbackColor = backgroundColor
+                    )
+                }
             ),
         selected = isSelected,
         text = content,

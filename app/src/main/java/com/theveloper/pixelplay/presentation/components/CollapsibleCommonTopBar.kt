@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.theveloper.pixelplay.ui.theme.PixelPlayStatusBarStyle
+import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
+import com.theveloper.pixelplay.ui.theme.ambientFrost
 import androidx.compose.ui.res.stringResource
 import com.theveloper.pixelplay.R
 
@@ -78,7 +80,14 @@ fun CollapsibleCommonTopBar(
         modifier = modifier
             .fillMaxWidth()
             .height(headerHeight)
-            .background(backgroundColor)
+            // On collapse this used to fade in a solid container colour, which over the
+            // ambient backdrop reads as a flat band. Frosting keeps the collapsed bar part
+            // of the backdrop; with the album-art theme off it paints the same colour as before.
+            .ambientFrost(
+                level = AmbientFrostLevel.Header,
+                tint = backgroundColor.copy(alpha = 1f),
+                fallbackColor = backgroundColor
+            )
             .zIndex(5f)
     ) {
         Box(

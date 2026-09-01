@@ -77,6 +77,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -139,6 +140,8 @@ import com.theveloper.pixelplay.presentation.viewmodel.ThemeStateHolder
 import com.theveloper.pixelplay.presentation.components.AmbientAlbumBackground
 import com.theveloper.pixelplay.data.preferences.AppColorSource
 import com.theveloper.pixelplay.ui.theme.LocalHazeState
+import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
+import com.theveloper.pixelplay.ui.theme.ambientFrost
 import com.theveloper.pixelplay.ui.theme.LocalAlbumArtPaletteStyle
 import com.theveloper.pixelplay.ui.theme.SolidSurfaceTheme
 import com.theveloper.pixelplay.data.preferences.AlbumArtPaletteStyle
@@ -949,7 +952,10 @@ class MainActivity : ComponentActivity() {
                                         clip = true
                                         shadowElevation = navBarElevationPx
                                     },
-                                color = NavigationBarDefaults.containerColor
+                                // Transparent here so the frost below can sample the backdrop;
+                                // ambientFrost paints the original container colour when the
+                                // album-art theme is off.
+                                color = Color.Transparent
                             ) {
                                 PlayerInternalNavigationBar(
                                     navController = navController,
@@ -959,7 +965,12 @@ class MainActivity : ComponentActivity() {
                                     compactMode = navBarCompactMode,
                                     bottomBarPadding = bottomBarPadding,
                                     onSearchIconDoubleTap = onSearchIconDoubleTap,
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .ambientFrost(
+                                            level = AmbientFrostLevel.NavBar,
+                                            fallbackColor = NavigationBarDefaults.containerColor
+                                        )
                                 )
                             }
                         }

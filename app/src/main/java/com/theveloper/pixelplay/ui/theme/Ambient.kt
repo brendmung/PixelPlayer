@@ -60,6 +60,15 @@ enum class AmbientFrostLevel {
     /** Buttons, chips and other controls. Enough tint to read as a filled control. */
     Control,
 
+    /**
+     * App bars and tab rows. Blurs the backdrop so the header reads as part of the ambient
+     * light rather than a flat colour band laid over it.
+     */
+    Header,
+
+    /** Navigation bar. Heavier than [Header] so it stays legible over busy artwork. */
+    NavBar,
+
     /** Dialogs, bottom sheets and popups. Heavy blur so content behind them is unreadable. */
     Dialog
 }
@@ -71,10 +80,12 @@ private data class FrostSpec(
 )
 
 private fun AmbientFrostLevel.spec(): FrostSpec = when (this) {
-    AmbientFrostLevel.Panel -> FrostSpec(blurRadiusDp = 18f, tintAlpha = 0.30f, noiseFactor = 0.04f)
-    AmbientFrostLevel.Card -> FrostSpec(blurRadiusDp = 12f, tintAlpha = 0.22f, noiseFactor = 0.03f)
-    AmbientFrostLevel.Control -> FrostSpec(blurRadiusDp = 16f, tintAlpha = 0.40f, noiseFactor = 0.02f)
-    AmbientFrostLevel.Dialog -> FrostSpec(blurRadiusDp = 42f, tintAlpha = 0.55f, noiseFactor = 0.05f)
+    AmbientFrostLevel.Panel -> FrostSpec(blurRadiusDp = 20f, tintAlpha = 0.34f, noiseFactor = 0.04f)
+    AmbientFrostLevel.Card -> FrostSpec(blurRadiusDp = 12f, tintAlpha = 0.26f, noiseFactor = 0.03f)
+    AmbientFrostLevel.Control -> FrostSpec(blurRadiusDp = 20f, tintAlpha = 0.52f, noiseFactor = 0.02f)
+    AmbientFrostLevel.Header -> FrostSpec(blurRadiusDp = 30f, tintAlpha = 0.46f, noiseFactor = 0.03f)
+    AmbientFrostLevel.NavBar -> FrostSpec(blurRadiusDp = 36f, tintAlpha = 0.62f, noiseFactor = 0.03f)
+    AmbientFrostLevel.Dialog -> FrostSpec(blurRadiusDp = 48f, tintAlpha = 0.74f, noiseFactor = 0.05f)
 }
 
 /**
@@ -110,6 +121,8 @@ fun Modifier.ambientFrost(
         AmbientFrostLevel.Panel -> opaqueScheme.surfaceContainerLow
         AmbientFrostLevel.Card -> opaqueScheme.surfaceContainerHigh
         AmbientFrostLevel.Control -> opaqueScheme.primaryContainer
+        AmbientFrostLevel.Header -> opaqueScheme.primaryContainer
+        AmbientFrostLevel.NavBar -> opaqueScheme.surfaceContainer
         AmbientFrostLevel.Dialog -> opaqueScheme.surfaceContainer
     }
 
@@ -118,6 +131,8 @@ fun Modifier.ambientFrost(
             AmbientFrostLevel.Panel -> scheme.surfaceContainerLow
             AmbientFrostLevel.Card -> scheme.surfaceContainerHigh
             AmbientFrostLevel.Control -> scheme.primaryContainer
+            AmbientFrostLevel.Header -> scheme.primaryContainer
+            AmbientFrostLevel.NavBar -> scheme.surfaceContainer
             AmbientFrostLevel.Dialog -> scheme.surfaceContainer
         }
         return@composed this.clip(shape).background(solid, shape)
@@ -218,3 +233,14 @@ fun SolidSurfaceTheme(
         )
     }
 }
+
+/**
+ * The album scheme with its original opaque colours, falling back to the active theme.
+ *
+ * Modal bottom sheets and dialogs render in their own window, so a [ambientFrost] there cannot
+ * sample the app's backdrop — there is nothing of the app behind them to blur. Translucent
+ * roles in that context just show the dimmed content underneath, which reads as a washed-out
+ * popup rather than glass. Those surfaces therefore stay opaque.
+ */
+@Composable
+fun opaqueColorScheme(): ColorScheme = LocalOpaqueColorScheme.current ?: MaterialTheme.colorScheme

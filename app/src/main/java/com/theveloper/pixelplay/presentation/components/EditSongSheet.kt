@@ -28,8 +28,7 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
-import com.theveloper.pixelplay.ui.theme.ambientFrost
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
@@ -316,16 +315,11 @@ private fun EditSongContent(
                 }
             )
         },
-        // Transparent container plus a heavy frost, so the editor floats on a blurred
-        // version of the screen underneath instead of a flat opaque panel. With the
-        // album-art theme off, ambientFrost() paints the original opaque surface colour.
-        containerColor = Color.Transparent,
-        modifier = Modifier
-            .fillMaxSize()
-            .ambientFrost(
-                level = AmbientFrostLevel.Dialog,
-                fallbackColor = MaterialTheme.colorScheme.surface
-            ),
+        // This editor lives inside a Dialog, i.e. its own window, so there is no app content
+        // behind it for a frost to sample. It stays opaque; opaqueColorScheme() keeps it that
+        // way even while the ambient theme has softened the surface roles app-side.
+        containerColor = opaqueColorScheme().surface,
+        modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()

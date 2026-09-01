@@ -844,7 +844,13 @@ fun LibraryScreen(
         modifier = Modifier.background(brush = gradientBrush),
         topBar = {
             Column(
-                modifier = Modifier.background(headerContainerColor)
+                // Frosted rather than a flat fill: a translucent colour band laid over the
+                // backdrop still reads as a solid stripe, because nothing behind it is
+                // blurred. This blends the header into the ambient light instead.
+                modifier = Modifier.ambientFrost(
+                    level = AmbientFrostLevel.Header,
+                    fallbackColor = headerContainerColor
+                )
             ) {
                 TopAppBar(
                     title = {

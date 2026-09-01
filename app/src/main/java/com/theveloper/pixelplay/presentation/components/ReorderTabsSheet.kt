@@ -45,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
@@ -131,7 +132,7 @@ fun ReorderTabsSheet(
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = opaqueColorScheme().surface
     ) {
         Scaffold(
             topBar = {

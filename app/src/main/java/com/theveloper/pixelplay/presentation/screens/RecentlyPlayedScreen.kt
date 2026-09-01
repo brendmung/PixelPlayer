@@ -53,6 +53,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.theveloper.pixelplay.ui.theme.isAmbientActive
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -352,7 +354,9 @@ fun RecentlyPlayedScreen(
         FilledIconButton(
             onClick = { navController.popBackStack() },
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                // Transparent in ambient mode so the shared frosted panel behind the nav
+                // host shows through; opaque surface otherwise, exactly as before.
+                containerColor = if (isAmbientActive) Color.Transparent else MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ),
             modifier = Modifier

@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -98,7 +99,7 @@ fun LibrarySortBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        containerColor = opaqueColorScheme().surfaceContainerHigh,
         tonalElevation = 8.dp
     ) {
         Column(

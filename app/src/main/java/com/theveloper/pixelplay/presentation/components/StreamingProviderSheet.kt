@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.theveloper.pixelplay.ui.theme.opaqueColorScheme
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -61,7 +62,7 @@ fun StreamingProviderSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = opaqueColorScheme().surfaceContainerLow,
         dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
         Column(
