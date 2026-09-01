@@ -48,6 +48,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.theveloper.pixelplay.ui.theme.AmbientFrostLevel
+import com.theveloper.pixelplay.ui.theme.ambientFrost
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.filled.Album
@@ -1496,6 +1498,23 @@ fun LibraryScreen(
 
                         // Box wrapper to allow floating SelectionCountPill overlay
                         Box(modifier = Modifier.fillMaxSize()) {
+                            // One frosted panel for the whole list section rather than one per
+                            // row: a haze node per list item would mean hundreds of backdrop
+                            // samples while scrolling. The song cards inside stay ordinary
+                            // translucent surfaces, which in ambient mode already carry the
+                            // artwork tint, so the panel reads as darker glass behind them.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .ambientFrost(
+                                        level = AmbientFrostLevel.Panel,
+                                        shape = RoundedCornerShape(
+                                            topStart = 24.dp,
+                                            topEnd = 24.dp
+                                        ),
+                                        fallbackColor = Color.Transparent
+                                    )
+                            )
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
