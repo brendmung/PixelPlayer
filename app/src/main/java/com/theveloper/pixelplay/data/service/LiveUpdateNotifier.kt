@@ -175,7 +175,7 @@ class LiveUpdateNotifier(
         val positionMs = player.currentPosition.coerceAtLeast(0L)
 
         val progressStyle = Notification.ProgressStyle()
-            .setStyledByProgress(false)
+            .setStyledByProgress(true)
             .setProgressTrackerIcon(
                 Icon.createWithResource(
                     context,
@@ -188,14 +188,12 @@ class LiveUpdateNotifier(
             )
         if (durationMs > 0L) {
             progressStyle
-                .addProgressSegment(
-                    Notification.ProgressStyle.Segment(durationMs.toInt()).setColor(accentColor)
-                )
+                .addProgressSegment(Notification.ProgressStyle.Segment(durationMs.toInt()))
                 .setProgress(positionMs.coerceAtMost(durationMs).toInt())
         } else {
             // Live streams, and tracks whose duration isn't known yet.
             progressStyle
-                .addProgressSegment(Notification.ProgressStyle.Segment(1).setColor(accentColor))
+                .addProgressSegment(Notification.ProgressStyle.Segment(1))
                 .setProgressIndeterminate(true)
         }
 
@@ -306,14 +304,28 @@ class LiveUpdateNotifier(
     private val accentColor: Int
         get() = ContextCompat.getColor(context, R.color.my_primary)
 
-    /** Text the collapsed status bar chip shows next to the icon; only a few characters fit. */
+    /**
+     * Text the collapsed status bar chip shows next to the icon. SystemUI drops the text
+     * entirely - falling back to icon only - once it no longer fits the status bar, which on a
+     * Pixel 7 happens above about nine characters, so the cap here is deliberately tight and
+     * measured on device rather than guessed. Uses the track title with any trailing
+     * "(Prod. by ...)" / "[feat. ...]" decoration removed, trimmed at a word boundary.
+     */
     private fun shortCriticalText(title: String, artist: String?): String {
-        val source = artist?.takeIf { it.isNotEmpty() } ?: title
+        val source = stripDecoration(title).ifEmpty { artist?.let(::stripDecoration).orEmpty() }
+        if (source.isEmpty()) return context.getString(R.string.app_name)
         if (source.length <= SHORT_CRITICAL_TEXT_MAX_LENGTH) return source
         val cut = source.take(SHORT_CRITICAL_TEXT_MAX_LENGTH)
         val lastSpace = cut.lastIndexOf(' ')
-        return if (lastSpace >= 4) cut.take(lastSpace) else cut.trimEnd()
+        return if (lastSpace >= MIN_WORD_BOUNDARY) cut.take(lastSpace) else cut.trimEnd()
     }
+
+    /** Drops bracketed suffixes such as "(Prod. by X)", "[feat. Y]" or "- Remix". */
+    private fun stripDecoration(text: String): String =
+        text.substringBefore('(')
+            .substringBefore('[')
+            .substringBefore(" - ")
+            .trim()
 
     private fun action(iconRes: Int, labelRes: Int, keyCode: Int): Notification.Action =
         Notification.Action.Builder(
@@ -387,7 +399,8 @@ class LiveUpdateNotifier(
             R.drawable.ic_equalizer_frame_3,
             R.drawable.ic_equalizer_frame_4,
         )
-        private const val SHORT_CRITICAL_TEXT_MAX_LENGTH = 12
+        private const val SHORT_CRITICAL_TEXT_MAX_LENGTH = 9
+        private const val MIN_WORD_BOUNDARY = 4
 
         fun isSupported(): Boolean = Build.VERSION.SDK_INT >= 36
     }
