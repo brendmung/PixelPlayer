@@ -3,6 +3,7 @@ package com.theveloper.pixelplay.data.service
 import android.app.Notification
 import android.content.Context
 import android.os.Bundle
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -21,6 +22,14 @@ class LocalOnlyMediaNotificationProvider(
         DefaultMediaNotificationProvider.Builder(context).build(),
 ) : MediaNotification.Provider {
 
+    /**
+     * Supplies the Android 16+ live chip. When the playback notification style preference selects
+     * the chip, it is handed to Media3 in place of the MediaStyle notification so the two never
+     * appear side by side - MediaStyle can never be promoted to the status bar chip, and the
+     * service only gets one notification.
+     */
+    var liveChipProvider: ((Player, Int) -> Notification?)? = null
+
     fun setSmallIcon(iconResId: Int) {
         delegate.setSmallIcon(iconResId)
     }
@@ -37,6 +46,10 @@ class LocalOnlyMediaNotificationProvider(
             actionFactory,
             callback
         )
+        liveChipProvider?.invoke(mediaSession.player, notification.notificationId)?.let { chip ->
+            return MediaNotification(notification.notificationId, chip)
+        }
+
         val localOnlyNotification = runCatching {
             Notification.Builder.recoverBuilder(context, notification.notification)
                 .setLocalOnly(true)

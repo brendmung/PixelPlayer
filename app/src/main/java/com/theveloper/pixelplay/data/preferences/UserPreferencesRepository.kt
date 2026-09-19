@@ -134,6 +134,7 @@ class UserPreferencesRepository @Inject constructor(
         val NAV_BAR_STYLE = stringPreferencesKey("nav_bar_style")
         val NAV_BAR_COMPACT_MODE = booleanPreferencesKey("nav_bar_compact_mode")
         val CAROUSEL_STYLE = stringPreferencesKey("carousel_style")
+        val PLAYBACK_NOTIFICATION_STYLE = stringPreferencesKey("playback_notification_style")
         val LIBRARY_NAVIGATION_MODE = stringPreferencesKey("library_navigation_mode")
         val LAUNCH_TAB = stringPreferencesKey("launch_tab")
 
@@ -996,6 +997,15 @@ suspend fun markDirectoryRulesVersionApplied(version: Int) {
 
     suspend fun setLibraryNavigationMode(mode: String) {
         dataStore.edit { it[PreferencesKeys.LIBRARY_NAVIGATION_MODE] = mode }
+    }
+
+    val playbackNotificationStyleFlow: Flow<String> =
+        pref { PlaybackNotificationStyle.sanitize(it[PreferencesKeys.PLAYBACK_NOTIFICATION_STYLE]) }
+
+    suspend fun setPlaybackNotificationStyle(style: String) {
+        dataStore.edit {
+            it[PreferencesKeys.PLAYBACK_NOTIFICATION_STYLE] = PlaybackNotificationStyle.sanitize(style)
+        }
     }
 
     val carouselStyleFlow: Flow<String> =

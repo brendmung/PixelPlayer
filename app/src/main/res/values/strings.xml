@@ -131,4 +131,8 @@
     <string name="live_update_action_play">Play</string>
     <string name="live_update_action_pause">Pause</string>
     <string name="live_update_action_next">Next</string>
+    <string name="settings_playback_notification_title">Playback notification</string>
+    <string name="settings_playback_notification_subtitle">Media controls feed the system player in Quick Settings and on the lock screen. The live chip shows in the status bar instead, with album art and transport controls.</string>
+    <string name="settings_playback_notification_media3">Media controls</string>
+    <string name="settings_playback_notification_live_chip">Live chip</string>
 </resources>

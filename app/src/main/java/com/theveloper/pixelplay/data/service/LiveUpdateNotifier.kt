@@ -64,6 +64,36 @@ class LiveUpdateNotifier(
     private var channelCreated = false
     private var posted = false
 
+    /**
+     * Notification id the chip is posted under. Media3 owns the service notification, so when the
+     * chip replaces it we post updates under Media3's id rather than adding a second card.
+     */
+    private var notificationId = OWN_NOTIFICATION_ID
+
+    /** Set from the playback notification style preference. */
+    var isEnabled: Boolean = false
+        private set
+
+    /**
+     * Turning the chip off must not cancel Media3's notification, which the chip borrows the id of
+     * while it is the service notification - that would drop the service out of the foreground.
+     * Only a chip posted under our own id is cancelled; Media3 reposts its own straight after.
+     */
+    fun setEnabled(enabled: Boolean) {
+        if (isEnabled == enabled) return
+        isEnabled = enabled
+        if (enabled) {
+            refresh()
+            return
+        }
+        stopTicker()
+        if (posted && notificationId == OWN_NOTIFICATION_ID) {
+            runCatching { notificationManager.cancel(OWN_NOTIFICATION_ID) }
+        }
+        posted = false
+        notificationId = OWN_NOTIFICATION_ID
+    }
+
     /** Index into [EQUALIZER_FRAMES]; advanced on every tick so the chip icon dances. */
     private var equalizerFrame = 0
 
@@ -90,14 +120,16 @@ class LiveUpdateNotifier(
     }
 
     fun attach(player: Player) {
-        if (this.player === player) {
-            refresh()
-            return
-        }
+        bind(player)
+        refresh()
+    }
+
+    /** Starts listening to [player] without posting anything. */
+    private fun bind(player: Player) {
+        if (this.player === player) return
         this.player?.removeListener(listener)
         this.player = player
         player.addListener(listener)
-        refresh()
     }
 
     fun detach(clearNotification: Boolean = true) {
@@ -113,6 +145,7 @@ class LiveUpdateNotifier(
 
     /** Re-posts the chip. Called on every track change, play/pause and seek. */
     fun refresh() {
+        if (!isEnabled) return
         val current = player
         if (current == null) {
             cancel()
@@ -136,7 +169,7 @@ class LiveUpdateNotifier(
         stopTicker()
         if (!posted) return
         posted = false
-        runCatching { notificationManager.cancel(NOTIFICATION_ID) }
+        runCatching { notificationManager.cancel(notificationId) }
     }
 
     /** Drives the progress bar forward while the track plays. */
@@ -161,6 +194,25 @@ class LiveUpdateNotifier(
 
     @SuppressLint("MissingPermission")
     private fun post(player: Player) {
+        notificationManager.notify(notificationId, build(player))
+        posted = true
+    }
+
+    /**
+     * Builds the chip so Media3's notification provider can hand it to the platform as the
+     * service's own notification, replacing the MediaStyle one. Binds [notificationId] to whatever
+     * id Media3 posts under so the ticker keeps updating that same notification.
+     */
+    fun buildForMediaService(player: Player, mediaNotificationId: Int): Notification? {
+        if (!isEnabled) return null
+        notificationId = mediaNotificationId
+        bind(player)
+        return runCatching { build(player) }
+            .onFailure { Timber.tag(TAG).w(it, "Failed to build live update notification") }
+            .getOrNull()
+    }
+
+    private fun build(player: Player): Notification {
         ensureChannel()
 
         val metadata = player.mediaMetadata
@@ -258,8 +310,7 @@ class LiveUpdateNotifier(
             // rendered as a chip.
             Timber.tag(TAG).w("Live update notification is not promotable; posting anyway")
         }
-        notificationManager.notify(NOTIFICATION_ID, notification)
-        posted = true
+        return notification
     }
 
     /**
@@ -389,7 +440,7 @@ class LiveUpdateNotifier(
     companion object {
         private const val TAG = "LiveUpdateNotifier"
         const val CHANNEL_ID = "pixelplay_live_update"
-        const val NOTIFICATION_ID = 0x9110
+        const val OWN_NOTIFICATION_ID = 0x9110
         private const val REQUEST_CODE_BASE = 0x9110
         private const val PROGRESS_TICK_MS = 500L
         private const val ARTWORK_SIZE_PX = 256

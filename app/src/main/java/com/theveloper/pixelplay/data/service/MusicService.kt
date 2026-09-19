@@ -49,6 +49,7 @@ import com.theveloper.pixelplay.data.model.PlayerInfo
 import com.theveloper.pixelplay.data.model.PlaybackQueueItemSnapshot
 import com.theveloper.pixelplay.data.model.PlaybackQueueSnapshot
 import com.theveloper.pixelplay.data.preferences.EqualizerPreferencesRepository
+import com.theveloper.pixelplay.data.preferences.PlaybackNotificationStyle
 import com.theveloper.pixelplay.data.preferences.ThemePreferencesRepository
 import com.theveloper.pixelplay.data.preferences.UserPreferencesRepository
 import com.theveloper.pixelplay.data.repository.MusicRepository
@@ -63,6 +64,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -192,6 +194,8 @@ class MusicService : MediaLibraryService() {
      * Android 16+ status bar / lock screen live chip. Null below API 36, where the platform has
      * no promoted-ongoing notifications.
      */
+    private var mediaNotificationProvider: LocalOnlyMediaNotificationProvider? = null
+
     private val liveUpdateNotifier: LiveUpdateNotifier? by lazy {
         if (LiveUpdateNotifier.isSupported()) LiveUpdateNotifier(this, serviceScope) else null
     }
@@ -925,7 +929,14 @@ class MusicService : MediaLibraryService() {
         val localOnlyProvider = LocalOnlyMediaNotificationProvider(this).also {
             it.setSmallIcon(R.drawable.monochrome_player)
         }
+        liveUpdateNotifier?.let { notifier ->
+            localOnlyProvider.liveChipProvider = { player, notificationId ->
+                notifier.buildForMediaService(player, notificationId)
+            }
+        }
+        mediaNotificationProvider = localOnlyProvider
         setMediaNotificationProvider(localOnlyProvider)
+        observePlaybackNotificationStyle()
         if (temporaryForegroundStartedInOnCreate) {
             serviceScope.launch {
                 delay(2_000L)
@@ -1056,6 +1067,29 @@ class MusicService : MediaLibraryService() {
         cancelDurationSleepTimerInternal()
         endOfTrackTimerSongId = null
         Timber.tag(TAG).d("Sleep timers cancelled from Wear")
+    }
+
+    /**
+     * Applies the playback notification style preference. Switching modes re-runs Media3's
+     * notification build so the shade swaps between the MediaStyle notification and the chip
+     * without either lingering.
+     */
+    private fun observePlaybackNotificationStyle() {
+        val notifier = liveUpdateNotifier ?: return
+        serviceScope.launch {
+            userPreferencesRepository.playbackNotificationStyleFlow
+                .distinctUntilChanged()
+                .collect { style ->
+                    val useChip = style == PlaybackNotificationStyle.LIVE_CHIP
+                    if (notifier.isEnabled == useChip) return@collect
+                    notifier.setEnabled(useChip)
+                    val session = mediaSession ?: return@collect
+                    runCatching { onUpdateNotification(session, false) }
+                        .onFailure {
+                            Timber.tag(TAG).w(it, "Failed to refresh notification after style change")
+                        }
+                }
+        }
     }
 
     private fun startTemporaryForegroundForCommand() {

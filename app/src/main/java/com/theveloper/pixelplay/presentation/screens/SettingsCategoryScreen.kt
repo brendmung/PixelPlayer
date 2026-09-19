@@ -166,6 +166,7 @@ import com.theveloper.pixelplay.data.preferences.AppColorSource
 import com.theveloper.pixelplay.data.preferences.AppThemeMode
 import com.theveloper.pixelplay.data.preferences.CollagePattern
 import com.theveloper.pixelplay.data.preferences.CarouselStyle
+import com.theveloper.pixelplay.data.preferences.PlaybackNotificationStyle
 import com.theveloper.pixelplay.data.preferences.LaunchTab
 import com.theveloper.pixelplay.data.preferences.LibraryNavigationMode
 import com.theveloper.pixelplay.data.preferences.NavBarStyle
@@ -760,6 +761,19 @@ fun SettingsCategoryScreen(
                                     onSelectionChanged = { settingsViewModel.setKeepPlayingInBackground(it.toBoolean()) },
                                     leadingIcon = { Icon(Icons.Rounded.MusicNote, null, tint = MaterialTheme.colorScheme.secondary) }
                                 )
+                                if (PlaybackNotificationStyle.isLiveChipSupported()) {
+                                    ThemeSelectorItem(
+                                        label = stringResource(R.string.settings_playback_notification_title),
+                                        description = stringResource(R.string.settings_playback_notification_subtitle),
+                                        options = mapOf(
+                                            PlaybackNotificationStyle.MEDIA3 to stringResource(R.string.settings_playback_notification_media3),
+                                            PlaybackNotificationStyle.LIVE_CHIP to stringResource(R.string.settings_playback_notification_live_chip)
+                                        ),
+                                        selectedKey = uiState.playbackNotificationStyle,
+                                        onSelectionChanged = { settingsViewModel.setPlaybackNotificationStyle(it) },
+                                        leadingIcon = { Icon(painterResource(R.drawable.ic_equalizer_frame_2), null, tint = MaterialTheme.colorScheme.secondary) }
+                                    )
+                                }
                                 SettingsItem(
                                     title = stringResource(R.string.settings_battery_optimization_title),
                                     subtitle = stringResource(R.string.settings_battery_optimization_subtitle),
