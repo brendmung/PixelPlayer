@@ -7,12 +7,19 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.view.KeyEvent
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.session.DefaultMediaNotificationProvider
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.size.Precision
 import com.theveloper.pixelplay.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -57,6 +64,14 @@ class LiveUpdateNotifier(
     private var channelCreated = false
     private var posted = false
 
+    /** Index into [EQUALIZER_FRAMES]; advanced on every tick so the chip icon dances. */
+    private var equalizerFrame = 0
+
+    /** Album art for [artworkKey], loaded off the main thread and reused across ticks. */
+    private var artworkKey: String? = null
+    private var artwork: Bitmap? = null
+    private var artworkJob: Job? = null
+
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             if (
@@ -88,6 +103,10 @@ class LiveUpdateNotifier(
     fun detach(clearNotification: Boolean = true) {
         player?.removeListener(listener)
         player = null
+        artworkJob?.cancel()
+        artworkJob = null
+        artworkKey = null
+        artwork = null
         stopTicker()
         if (clearNotification) cancel()
     }
@@ -128,6 +147,7 @@ class LiveUpdateNotifier(
                 delay(PROGRESS_TICK_MS)
                 val current = this@LiveUpdateNotifier.player ?: break
                 if (!current.isPlaying) break
+                equalizerFrame = (equalizerFrame + 1) % EQUALIZER_FRAMES.size
                 runCatching { post(current) }
                     .onFailure { Timber.tag(TAG).w(it, "Live update progress tick failed") }
             }
@@ -149,13 +169,22 @@ class LiveUpdateNotifier(
         val artist = metadata.artist?.toString()?.trim()
             ?: metadata.albumArtist?.toString()?.trim()
 
+        ensureArtwork(player)
+
         val durationMs = player.duration.takeIf { it > 0L } ?: 0L
         val positionMs = player.currentPosition.coerceAtLeast(0L)
 
         val progressStyle = Notification.ProgressStyle()
             .setStyledByProgress(false)
             .setProgressTrackerIcon(
-                Icon.createWithResource(context, R.drawable.rounded_play_circle_24)
+                Icon.createWithResource(
+                    context,
+                    if (player.isPlaying) {
+                        R.drawable.rounded_play_circle_24
+                    } else {
+                        R.drawable.rounded_pause_filled_24
+                    }
+                )
             )
         if (durationMs > 0L) {
             progressStyle
@@ -171,7 +200,13 @@ class LiveUpdateNotifier(
         }
 
         val builder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.monochrome_player)
+            .setSmallIcon(
+                if (player.isPlaying) {
+                    EQUALIZER_FRAMES[equalizerFrame]
+                } else {
+                    R.drawable.monochrome_player
+                }
+            )
             .setContentTitle(title)
             .setContentText(artist)
             .setStyle(progressStyle)
@@ -179,6 +214,10 @@ class LiveUpdateNotifier(
             .setOngoing(true)
             .setLocalOnly(true)
             .setOnlyAlertOnce(true)
+            // Sit in Media3's notification group so the shade shows one bundled media block
+            // instead of two unrelated cards.
+            .setGroup(DefaultMediaNotificationProvider.GROUP_KEY)
+            .setGroupAlertBehavior(Notification.GROUP_ALERT_SUMMARY)
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setShortCriticalText(shortCriticalText(title, artist))
@@ -212,6 +251,7 @@ class LiveUpdateNotifier(
                     KeyEvent.KEYCODE_MEDIA_NEXT,
                 )
             )
+        artwork?.let { builder.setLargeIcon(it) }
         openAppIntent()?.let { builder.setContentIntent(it) }
 
         val notification = builder.build()
@@ -223,6 +263,45 @@ class LiveUpdateNotifier(
         notificationManager.notify(NOTIFICATION_ID, notification)
         posted = true
     }
+
+    /**
+     * Loads the current track's album art for the chip's large icon. Keyed by media id so the
+     * per-second re-posts reuse one bitmap, and decoded small because the chip only shows a
+     * thumbnail.
+     */
+    private fun ensureArtwork(player: Player) {
+        val key = player.currentMediaItem?.mediaId?.takeIf { it.isNotBlank() }
+        if (key == null) {
+            artworkKey = null
+            artwork = null
+            return
+        }
+        if (key == artworkKey) return
+
+        artworkKey = key
+        artwork = null
+        artworkJob?.cancel()
+
+        val source = artworkSource(player.mediaMetadata) ?: return
+        artworkJob = scope.launch {
+            val request = ImageRequest.Builder(context)
+                .data(source)
+                .size(ARTWORK_SIZE_PX, ARTWORK_SIZE_PX)
+                .precision(Precision.INEXACT)
+                .allowHardware(false)
+                .build()
+            val bitmap = runCatching {
+                context.imageLoader.execute(request).drawable?.toBitmap()
+            }.getOrNull()
+            if (bitmap != null && artworkKey == key) {
+                artwork = bitmap
+                refresh()
+            }
+        }
+    }
+
+    private fun artworkSource(metadata: MediaMetadata): Any? =
+        metadata.artworkData ?: metadata.artworkUri
 
     private val accentColor: Int
         get() = ContextCompat.getColor(context, R.color.my_primary)
@@ -300,7 +379,14 @@ class LiveUpdateNotifier(
         const val CHANNEL_ID = "pixelplay_live_update"
         const val NOTIFICATION_ID = 0x9110
         private const val REQUEST_CODE_BASE = 0x9110
-        private const val PROGRESS_TICK_MS = 1_000L
+        private const val PROGRESS_TICK_MS = 500L
+        private const val ARTWORK_SIZE_PX = 256
+        private val EQUALIZER_FRAMES = intArrayOf(
+            R.drawable.ic_equalizer_frame_1,
+            R.drawable.ic_equalizer_frame_2,
+            R.drawable.ic_equalizer_frame_3,
+            R.drawable.ic_equalizer_frame_4,
+        )
         private const val SHORT_CRITICAL_TEXT_MAX_LENGTH = 12
 
         fun isSupported(): Boolean = Build.VERSION.SDK_INT >= 36
