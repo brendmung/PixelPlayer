@@ -125,4 +125,10 @@
     <string name="common_play_album">Play album</string>
     <string name="common_shuffle_play_album">Shuffle play album</string>
     <string name="common_album_art_for_title">Album art for %1$s</string>
+    <string name="live_update_channel_name">Now playing chip</string>
+    <string name="live_update_channel_description">Shows the current track as a live status bar chip with playback controls.</string>
+    <string name="live_update_action_previous">Previous</string>
+    <string name="live_update_action_play">Play</string>
+    <string name="live_update_action_pause">Pause</string>
+    <string name="live_update_action_next">Next</string>
 </resources>

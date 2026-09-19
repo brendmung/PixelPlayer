@@ -187,6 +187,14 @@ class MusicService : MediaLibraryService() {
     private var mediaSession: MediaLibrarySession? = null
     private val controllerLastBrowsedParent = mutableMapOf<String, String>()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /**
+     * Android 16+ status bar / lock screen live chip. Null below API 36, where the platform has
+     * no promoted-ongoing notifications.
+     */
+    private val liveUpdateNotifier: LiveUpdateNotifier? by lazy {
+        if (LiveUpdateNotifier.isSupported()) LiveUpdateNotifier(this, serviceScope) else null
+    }
     private var keepPlayingInBackground = true
     private var isManualShuffleEnabled = false
     private var persistentShuffleEnabled = false
@@ -351,6 +359,7 @@ class MusicService : MediaLibraryService() {
             session.player = player
             player.addListener(playerListener)
         }
+        liveUpdateNotifier?.attach(player)
 
         Timber.tag("MusicService").d(logMessage)
         syncLocalListeningStatsFromPlayer(player)
@@ -439,6 +448,7 @@ class MusicService : MediaLibraryService() {
         syncLocalListeningStatsFromPlayer(engine.masterPlayer)
 
         engine.masterPlayer.addListener(playerListener)
+        liveUpdateNotifier?.attach(engine.masterPlayer)
         registerSystemVolumeObserver()
 
         // Handle player swaps (crossfade) to keep MediaSession in sync
@@ -1560,6 +1570,7 @@ class MusicService : MediaLibraryService() {
         engine.removeTransitionDisplayPlayerListener(transitionDisplayPlayerListener)
         engine.removeTransitionFinishedListener(transitionFinishedListener)
         engine.setOnPlayerAboutToBeReleasedListener {}
+        liveUpdateNotifier?.detach()
         mediaSession?.player?.removeListener(playerListener)
         engine.masterPlayer.removeListener(playerListener)
 
