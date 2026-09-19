@@ -31,9 +31,16 @@ import timber.log.Timber
  * separate ProgressStyle notification carrying the track, a progress bar for the playback
  * position, and previous / play-pause / next actions, which is what the chip expands to.
  *
- * The other characteristics the platform requires (Notification.hasPromotableCharacteristics)
- * are all satisfied here: colorized requested, ongoing, a non-empty title, not a group summary,
- * and no custom views. The channel importance must also stay above IMPORTANCE_MIN.
+ * The other characteristics the platform requires are read straight off
+ * Notification.hasPromotableCharacteristics, which on Android 17 is:
+ *
+ *     isRequestPromotedOngoing() && isOngoingEvent() && hasTitle() && hasPromotableStyle()
+ *         && !isGroupSummary() && !containsCustomViews() && !isColorizedRequested() && !isBridged()
+ *
+ * Note the two traps. setRequestPromotedOngoing(true) is mandatory, not a hint; and the
+ * notification must NOT request colorization - that condition is negated, the opposite of what
+ * Android 16 documented - so setColor() is fine but colorization must never be requested here.
+ * The channel importance must also stay above IMPORTANCE_MIN.
  */
 @RequiresApi(36)
 class LiveUpdateNotifier(
@@ -169,7 +176,6 @@ class LiveUpdateNotifier(
             .setContentText(artist)
             .setStyle(progressStyle)
             .setColor(accentColor)
-            .setColorized(true)
             .setOngoing(true)
             .setLocalOnly(true)
             .setOnlyAlertOnce(true)
